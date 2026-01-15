@@ -1,0 +1,102 @@
+/* GENEL AYARLAR */
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif; /* Modern yazı tipi */
+  background-color: #f4f7f6;
+  color: #333;
+}
+
+/* NAVBAR TASARIMI */
+.navbar {
+  display: flex;
+  justify-content: space-between; /* Logo sola, linkler sağa */
+  align-items: center;
+  padding: 15px 50px;
+  background-color: #2c3e50; /* Koyu lacivert */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  position: sticky; /* Sayfa kaydırılsa bile üstte kalsın */
+  top: 0;
+  z-index: 1000;
+}
+
+/* LOGO */
+.logo a {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* LİNKLER */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 25px; /* Linkler arası boşluk */
+}
+
+.nav-item {
+  text-decoration: none;
+  color: #bdc3c7; /* Gri-beyaz */
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.nav-item:hover {
+  color: #ffffff; /* Üzerine gelince beyaz olsun */
+}
+
+/* KAYIT OL BUTONU (Özel Tasarım) */
+.register-btn {
+  background-color: #27ae60; /* Yeşil */
+  color: white !important;
+  padding: 10px 25px;
+  border-radius: 25px; /* Yuvarlak kenarlar */
+  font-weight: bold;
+  transition: transform 0.2s, background-color 0.3s;
+}
+
+.register-btn:hover {
+  background-color: #2ecc71; /* Açık yeşil */
+  transform: scale(1.05); /* Hafif büyüme efekti */
+}
+
+/* ANA SAYFA KARŞILAMA EKRANI */
+.home-banner {
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+  color: white;
+  border-radius: 0 0 50% 50% / 20px; /* Alttan hafif kavis */
+}
+
+.home-banner h1 {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.home-banner p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  margin-bottom: 30px;
+}
+
+/* ANA SAYFA BUTONU */
+.cta-button {
+  background-color: #e67e22; /* Turuncu */
+  color: white;
+  padding: 15px 40px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(230, 126, 34, 0.4);
+  transition: all 0.3s;
+}
+
+.cta-button:hover {
+  background-color: #d35400;
+  transform: translateY(-3px); /* Yukarı kalkma efekti */
+}

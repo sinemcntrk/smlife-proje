@@ -1,0 +1,184 @@
+/* src/components/Home.css */
+
+/* Genel Sayfa Yapısı */
+.home-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #E0F7FA 0%, #E8F5E9 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+/* Navbar (Üst Menü) */
+.home-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 3rem;
+  background-color: #fff;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.home-logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #00796B;
+  text-decoration: none;
+  letter-spacing: 1px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+/* --- MEVCUT CSS'İN EN ALTINA EKLEYEBİLİRSİN --- */
+
+/* Dropdown Kapsayıcısı */
+.nav-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* Dropdown Menü (Başlangıçta gizli) */
+.dropdown-menu {
+  display: none; /* Gizli */
+  position: absolute;
+  top: 100%; /* Tam "Araçlar" yazısının altına */
+  left: 0;
+  background-color: #fff;
+  min-width: 220px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  z-index: 1000;
+  flex-direction: column;
+  padding: 0.5rem 0;
+  border: 1px solid #eee;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Hover Efekti: Üzerine gelince GÖSTER */
+.nav-dropdown:hover .dropdown-menu {
+  display: flex;
+}
+
+/* Dropdown içindeki linkler */
+.dropdown-item {
+  padding: 12px 20px;
+  text-decoration: none;
+  color: #555;
+  font-size: 0.95rem;
+  transition: background 0.2s, color 0.2s;
+  border-bottom: 1px solid #f9f9f9;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background-color: #f0fdfc; /* Çok açık yeşilimsi ton */
+  color: #00796B;
+}
+
+/* Ufak bir animasyon efekti */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.nav-item-register {
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #00796B;
+  margin-right: 15px;
+}
+
+/* Giriş Yap Butonu */
+.login-btn {
+  padding: 0.6rem 1.5rem;
+  background-color: #26A69A;
+  color: white;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(38, 166, 154, 0.3);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.login-btn:hover {
+  background-color: #00897B;
+  transform: translateY(-2px);
+}
+
+/* Vitrin (Hero) Alanı */
+.hero-section {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.hero-title {
+  font-size: 3rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.hero-text {
+  font-size: 1.2rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto 3rem auto;
+  line-height: 1.6;
+}
+
+/* Kartlar Alanı */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem 2rem;
+}
+
+.feature-card {
+  background-color: #fff;
+  border-radius: 15px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  border: 1px solid #eee;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+.card-title {
+  color: #00796B;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.card-desc {
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.card-link {
+  display: block;
+  margin-top: 1rem;
+  color: #26A69A;
+  font-weight: bold;
+  text-decoration: none;
+}

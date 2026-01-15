@@ -1,0 +1,123 @@
+/* src/components/VkiHesapla.css */
+
+/* Sayfa Arkaplanı */
+.vki-container {
+  padding: 4rem 1rem;
+  text-align: center;
+  background-color: #e0f7fa; /* Açık turkuaz */
+  min-height: 100vh;
+  display: flex;
+  align-items: center; /* Dikey ortalama */
+  justify-content: center;
+}
+
+/* Hesaplama Kartı */
+.vki-card {
+  width: 100%;
+  max-width: 450px;
+  background-color: white;
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 96, 100, 0.15); /* Hafif yeşil gölge */
+  transition: transform 0.3s ease;
+}
+
+.vki-card:hover {
+  transform: translateY(-5px); /* Üzerine gelince hafif kalksın */
+}
+
+/* Başlık */
+.vki-title {
+  color: #006064; /* Koyu Cyan */
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+/* Form Yapısı */
+.vki-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* Input Alanları */
+.vki-input {
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #b2ebf2;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.vki-input:focus {
+  border-color: #00bcd4;
+  box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.2);
+}
+
+/* Hesapla Butonu */
+.vki-btn {
+  padding: 14px;
+  background-color: #00bcd4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.vki-btn:hover {
+  background-color: #0097a7;
+  transform: scale(1.02);
+}
+
+/* Sonuç Alanı */
+.result-box {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0f7fa;
+  animation: fadeIn 0.5s ease;
+}
+
+.result-value {
+  color: #006064;
+  font-size: 2.5rem;
+  margin: 0.5rem 0;
+}
+
+.result-status {
+  color: #00838f;
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Bildirim Mesajları */
+.message-box {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.message-success {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #C8E6C9;
+}
+
+.message-error {
+  background-color: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #FFCDD2;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

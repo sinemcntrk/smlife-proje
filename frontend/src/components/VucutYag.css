@@ -1,0 +1,100 @@
+/* src/components/VucutYag.css */
+
+.yag-container {
+  padding: 4rem 1rem;
+  text-align: center;
+  background-color: #f3e5f5; /* Çok açık mor */
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yag-card {
+  width: 100%;
+  max-width: 500px;
+  background-color: white;
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(123, 31, 162, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.yag-card:hover {
+  transform: translateY(-5px);
+}
+
+.yag-title {
+  color: #7b1fa2; /* Koyu Mor */
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+.yag-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* Form elemanları */
+.yag-input, .yag-select {
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #e1bee7;
+  font-size: 1rem;
+  outline: none;
+  background-color: #fff;
+}
+
+.yag-input:focus, .yag-select:focus {
+  border-color: #9c27b0;
+  box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.2);
+}
+
+.yag-btn {
+  padding: 14px;
+  background-color: #9c27b0; /* Canlı Mor */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-top: 10px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.yag-btn:hover {
+  background-color: #7b1fa2;
+  transform: scale(1.02);
+}
+
+/* Sonuç Alanı */
+.result-box {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f3e5f5;
+  animation: fadeIn 0.5s ease;
+}
+
+.result-value {
+  color: #7b1fa2;
+  font-size: 2.5rem;
+  margin: 0.5rem 0;
+}
+
+.result-desc {
+  color: #8e24aa;
+  font-size: 0.95rem;
+}
+
+/* Mesaj Kutuları */
+.message-box {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.message-success { background-color: #f3e5f5; color: #6a1b9a; border: 1px solid #e1bee7; }
+.message-error { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }

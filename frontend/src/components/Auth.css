@@ -1,0 +1,285 @@
+/* --- GENEL SAYFA DÜZENİ --- */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0f7fa 0%, #80deea 100%); /* Ferah Mavi */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+}
+
+/* --- KART KUTUSU (WIZARD BOX) --- */
+.wizard-box {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  padding: 40px;
+  position: relative;
+  overflow: hidden; /* Taşmaları gizle */
+  text-align: center;
+}
+
+/* --- İLERLEME ÇUBUĞU --- */
+.progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 6px;
+  background: #1abc9c; /* Yeşil */
+  transition: width 0.4s ease-in-out;
+}
+
+/* --- BAŞLIKLAR --- */
+.wizard-step h2 {
+  color: #2c3e50;
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+  font-weight: 700;
+}
+
+/* --- 1. KUTUCUKLU SEÇENEKLER (GRID) --- */
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.option-card {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 25px 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 80px;
+}
+
+.option-card:hover {
+  border-color: #a3e4d7;
+  transform: translateY(-2px);
+}
+
+.option-card.selected {
+  background-color: #e8f8f5;
+  border-color: #1abc9c;
+  color: #16a085;
+  box-shadow: 0 4px 10px rgba(26, 188, 156, 0.2);
+}
+
+/* --- 2. LİSTE SEÇENEKLERİ --- */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px; /* Akordeon için biraz kıstık */
+}
+
+.list-card {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  padding: 15px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.list-card strong {
+  display: block;
+  font-size: 1.1rem;
+  color: #34495e;
+}
+
+.list-card small {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.list-card:hover {
+  border-color: #a3e4d7;
+}
+
+.list-card.selected {
+  background-color: #e8f8f5;
+  border-color: #1abc9c;
+}
+
+/* --- 3. INPUT ALANLARI --- */
+.input-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #34495e;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid #ecf0f1;
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+  background-color: #fdfdfd;
+}
+
+.input-group input:focus {
+  border-color: #1abc9c;
+  background-color: white;
+}
+
+/* --- BUTONLAR --- */
+.btn-row {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.btn-next, .btn-primary {
+  flex: 2;
+  background-color: #1abc9c;
+  color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-next:hover, .btn-primary:hover {
+  background-color: #16a085;
+}
+
+.btn-next:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.btn-back {
+  flex: 1;
+  background-color: #ecf0f1;
+  color: #7f8c8d;
+  border: none;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-back:hover {
+  background-color: #dfe6e9;
+  color: #2c3e50;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 480px) {
+  .wizard-box { padding: 25px; }
+  .options-grid { grid-template-columns: 1fr; }
+  .wizard-step h2 { font-size: 1.5rem; }
+}
+
+/* =========================================
+   YENİ: AÇILIR KAPANIR (ACCORDION) STİLİ
+   ========================================= */
+
+.extra-sports-section {
+  margin-top: 20px;
+  border-top: 1px solid #f1f1f1;
+  padding-top: 15px;
+}
+
+/* Tıklanabilir Başlık */
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #555;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.accordion-header:hover {
+  background-color: #e0f2f1;
+  color: #009688;
+}
+
+.accordion-header.active {
+  background-color: #e0f2f1;
+  color: #00796b;
+  border-color: #b2dfdb;
+}
+
+.arrow {
+  font-size: 0.8rem;
+}
+
+/* Açılan İçerik (Animasyonlu) */
+.sports-grid-animated {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Spor Etiketi (Chip) */
+.sport-chip {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.sport-chip:hover {
+  border-color: #1abc9c;
+  color: #1abc9c;
+}
+
+.sport-chip.active {
+  background-color: #1abc9c;
+  border-color: #1abc9c;
+  color: white;
+  box-shadow: 0 3px 8px rgba(26, 188, 156, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Açılma Animasyonu */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
