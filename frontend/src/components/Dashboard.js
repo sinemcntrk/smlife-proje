@@ -309,7 +309,7 @@ const Dashboard = () => {
     setLoading(true);
     const formData = new FormData(); formData.append('file', selectedFile);
     try {
-        const aiRes = await fetch('http://127.0.0.1:5001/predict', { method: 'POST', body: formData });
+        const aiRes = await fetch('https://smlife-ai.onrender.com/predict', { method: 'POST', body: formData });
         const aiData = await aiRes.json();
         if (aiData.success) {
             setAiResult(aiData);
