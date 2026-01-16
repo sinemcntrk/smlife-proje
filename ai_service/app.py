@@ -1,54 +1,57 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import requests
+import google.generativeai as genai
 import os
-import io
+import json
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# BURAYA HUGGING FACE TOKEN'INI YAPIŞTIR 👇
-API_TOKEN = os.environ.get("HUGGINGFACE_TOKEN")
+# API Key'i ortam değişkeninden alacağız
+API_KEY = os.environ.get("GOOGLE_API_KEY")
 
-# Yemek tanıyan hazır, eğitilmiş profesyonel bir model
-API_URL = "https://api-inference.huggingface.co/models/nateraw/food"
+# Eğer anahtar yoksa hata vermesin diye boş geçiyoruz (Render'da ekleyeceğiz)
+if API_KEY:
+    genai.configure(api_key=API_KEY)
 
-headers = {"Authorization": f"Bearer {API_TOKEN}"}
+print("✅ Google Gemini Vision AI Servisi Hazır!")
 
-print("✅ Bulut Tabanlı AI Servisi Başlatıldı!")
+def analyze_image_with_gemini(image_data):
+    """Resmi Google Gemini'ye gönderir ve besin değerlerini ister"""
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # Yapay Zekaya Verdiğimiz Emir (Prompt)
+        prompt = """
+        Sen uzman bir diyetisyensin. Bu resimdeki yiyeceği analiz et.
+        Bana SADECE geçerli bir JSON formatında şu verileri ver:
+        {
+            "food_name": "Yemeğin Türkçe Adı",
+            "calories": 100 (tahmini sayı),
+            "protein": 10 (tahmini gram),
+            "carbs": 20 (tahmini gram),
+            "fat": 5 (tahmini gram),
+            "confidence": 0.95 (0-1 arası sayı)
+        }
+        Ekstra hiçbir yazı yazma, sadece JSON döndür. Eğer resimde yemek yoksa "food_name" kısmına "Yemek Tespit Edilemedi" yaz.
+        """
 
-# İngilizce gelen sonuçları Türkçe'ye ve kalorilere çevirelim
-food_database = {
-    "pizza": {"label": "Pizza", "cal": 266, "p": 11, "c": 33, "f": 10},
-    "hamburger": {"label": "Hamburger", "cal": 295, "p": 17, "c": 30, "f": 12},
-    "french_fries": {"label": "Patates Kızartması", "cal": 312, "p": 3, "c": 41, "f": 15},
-    "ice_cream": {"label": "Dondurma", "cal": 207, "p": 3, "c": 24, "f": 11},
-    "fried_rice": {"label": "Pirinç Pilavı", "cal": 130, "p": 2, "c": 28, "f": 0},
-    "grilled_salmon": {"label": "Izgara Somon", "cal": 206, "p": 22, "c": 0, "f": 12},
-    "chicken_wings": {"label": "Tavuk Kanat", "cal": 203, "p": 30, "c": 0, "f": 8},
-    "steak": {"label": "Biftek", "cal": 271, "p": 26, "c": 0, "f": 19},
-    "spaghetti_bolognese": {"label": "Spagetti Bolonez", "cal": 297, "p": 13, "c": 46, "f": 7},
-    "apple_pie": {"label": "Elmalı Turta", "cal": 237, "p": 2, "c": 34, "f": 10},
-    "banana": {"label": "Muz", "cal": 89, "p": 1.1, "c": 23, "f": 0.3},
-    "apple": {"label": "Elma", "cal": 52, "p": 0.3, "c": 14, "f": 0.2}
-}
+        response = model.generate_content([
+            {'mime_type': 'image/jpeg', 'data': image_data},
+            prompt
+        ])
+        
+        # Gelen metni temizle (Bazen ```json ... ``` içinde gönderir)
+        text_response = response.text.replace("```json", "").replace("```", "").strip()
+        return json.loads(text_response)
 
-def query_huggingface(image_bytes):
-    response = requests.post(API_URL, headers=headers, data=image_bytes)
-    
-    # --- YENİ EKLENEN KISIM (HATA AYIKLAMA) ---
-    print(f"Status Code: {response.status_code}") # 200 mü 401 mi 503 mü?
-    print(f"Response Text: {response.text}")       # Gelen cevabı loglara yaz
-    # ------------------------------------------
-
-    if response.status_code != 200:
-        return {"error": f"API Hatası: {response.status_code} - {response.text}"}
-
-    return response.json()
+    except Exception as e:
+        print(f"Gemini Hatası: {str(e)}")
+        return None
 
 @app.route('/', methods=['GET'])
 def home():
-    return "Gerçek AI Servisi Çalışıyor (Hugging Face API) 🧠"
+    return "Google Gemini AI Servisi Aktif! 🧠✨"
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -57,50 +60,29 @@ def predict():
     
     file = request.files['file']
     
+    # API Anahtarı kontrolü
+    if not API_KEY:
+        return jsonify({'error': 'Sunucuda API Anahtarı eksik!'}), 500
+
     try:
-        # Resmi byte formatında oku
-        image_bytes = file.read()
+        # Resmi oku
+        image_data = file.read()
         
-        # Hugging Face'e gönder ve sonucu al (Gerçek Analiz)
-        output = query_huggingface(image_bytes)
+        # Google'a Sor
+        result = analyze_image_with_gemini(image_data)
         
-        # Hata kontrolü (Model yükleniyor olabilir)
-        if isinstance(output, dict) and 'error' in output:
-             return jsonify({'error': 'Model şu an uyanıyor, 10sn sonra tekrar deneyin.'}), 503
-
-        # En yüksek ihtimalli sonucu al
-        # Output şöyle gelir: [{'label': 'pizza', 'score': 0.99}, ...]
-        best_prediction = output[0]
-        english_label = best_prediction['label']
-        confidence = round(best_prediction['score'], 4)
-        
-        # Bizim veritabanında var mı diye bak
-        nutrition = food_database.get(english_label)
-        
-        # Eğer listemizde yoksa varsayılan değerler dön
-        if not nutrition:
-            label_tr = english_label.replace("_", " ").title() # Örn: hot_dog -> Hot Dog
-            calories = 150
-            protein = 5
-            carbs = 10
-            fat = 5
+        if result:
+            return jsonify({
+                'success': True,
+                'label': result.get('food_name', 'Bilinmeyen'),
+                'confidence': result.get('confidence', 0.8),
+                'calories': result.get('calories', 0),
+                'protein': result.get('protein', 0),
+                'carbs': result.get('carbs', 0),
+                'fat': result.get('fat', 0)
+            })
         else:
-            label_tr = nutrition['label']
-            calories = nutrition['cal']
-            protein = nutrition['p']
-            carbs = nutrition['c']
-            fat = nutrition['f']
-
-        return jsonify({
-            'success': True,
-            'label': label_tr,     # Türkçe isim
-            'eng_label': english_label, # Debug için
-            'confidence': confidence,
-            'calories': calories,
-            'protein': protein,
-            'carbs': carbs,
-            'fat': fat
-        })
+            return jsonify({'error': 'Analiz yapılamadı'}), 500
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
