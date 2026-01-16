@@ -3,7 +3,6 @@ const cors = require('cors');
 const pool = require('./db');
 const multer = require('multer');
 const path = require('path');
-const cors = require('cors'); // Bu satırı ekle
 const app = express();
 const PORT = 5000;
 
