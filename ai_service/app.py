@@ -10,8 +10,7 @@ import os
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
-
+CORS(app, resources={r"/*": {"origins": "*"}})
 print("Yapay Zeka Modeli Yükleniyor... (Biraz sürebilir)")
 model = MobileNetV2(weights='imagenet')
 print("✅ Model Hazır!")
