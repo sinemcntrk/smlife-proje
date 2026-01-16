@@ -13,27 +13,32 @@ API_KEY = os.environ.get("GOOGLE_API_KEY")
 if API_KEY:
     genai.configure(api_key=API_KEY)
 
-print("✅ Google Gemini AI Servisi (Debug Modu) Hazır!")
+print("✅ Google Gemini AI Servisi (v2) Hazır!")
 
 def analyze_image_with_gemini(image_data, mime_type):
-    """Resmi Google Gemini'ye gönderir ve sonucu (veya hatayı) döner"""
+    """Resmi Google Gemini'ye gönderir"""
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Önce en hızlı ve yeni modeli dene
+        model_name = 'gemini-1.5-flash'
         
+        # Prompt (Emir)
         prompt = """
         Sen uzman bir diyetisyensin. Bu resimdeki yiyeceği analiz et.
         Bana SADECE geçerli bir JSON formatında şu verileri ver:
         {
             "food_name": "Yemeğin Türkçe Adı",
-            "calories": 100 (sayı),
-            "protein": 10 (sayı),
-            "carbs": 20 (sayı),
-            "fat": 5 (sayı),
+            "calories": 100,
+            "protein": 10,
+            "carbs": 20,
+            "fat": 5,
             "confidence": 0.95
         }
-        Ekstra hiçbir yazı yazma (markdown backticks kullanma), sadece saf JSON döndür.
+        Eğer resimde yemek yoksa "food_name" kısmına "Yemek Tespit Edilemedi" yaz.
+        Sadece JSON döndür, markdown backticks (```json) kullanma.
         """
 
+        model = genai.GenerativeModel(model_name)
+        
         response = model.generate_content([
             {'mime_type': mime_type, 'data': image_data},
             prompt
@@ -44,12 +49,12 @@ def analyze_image_with_gemini(image_data, mime_type):
         return json.loads(text_response)
 
     except Exception as e:
-        # HATA OLUŞURSA GİZLEME, GERİ DÖNDÜR!
+        # Hata detayını döndür
         return {"error_details": str(e)}
 
 @app.route('/', methods=['GET'])
 def home():
-    return "Google Gemini AI Servisi Aktif! 🧠✨"
+    return "Google Gemini AI Servisi Çalışıyor! 🧠"
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -58,24 +63,18 @@ def predict():
     
     file = request.files['file']
     
-    # 1. API Anahtarı Yoksa Hemen Söyle
     if not API_KEY:
-        return jsonify({'error': 'SUNUCU HATASI: GOOGLE_API_KEY Render ortam değişkenlerinde bulunamadı!'}), 500
+        return jsonify({'error': 'SUNUCU HATASI: GOOGLE_API_KEY eksik!'}), 500
 
     try:
-        # 2. Resim Formatını Otomatik Algıla (PNG mi JPG mi?)
         mime_type = file.mimetype or "image/jpeg"
         image_data = file.read()
         
-        # 3. Google'a Gönder
         result = analyze_image_with_gemini(image_data, mime_type)
         
-        # Eğer sonuçta hata detayı varsa kullanıcıya göster
         if "error_details" in result:
-            print(f"Gemini Hatası: {result['error_details']}") # Loglara da yaz
             return jsonify({'error': f"AI Hatası: {result['error_details']}"}), 500
 
-        # Başarılıysa sonucu dön
         return jsonify({
             'success': True,
             'label': result.get('food_name', 'Bilinmeyen'),
