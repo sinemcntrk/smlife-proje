@@ -35,6 +35,15 @@ food_database = {
 
 def query_huggingface(image_bytes):
     response = requests.post(API_URL, headers=headers, data=image_bytes)
+    
+    # --- YENİ EKLENEN KISIM (HATA AYIKLAMA) ---
+    print(f"Status Code: {response.status_code}") # 200 mü 401 mi 503 mü?
+    print(f"Response Text: {response.text}")       # Gelen cevabı loglara yaz
+    # ------------------------------------------
+
+    if response.status_code != 200:
+        return {"error": f"API Hatası: {response.status_code} - {response.text}"}
+
     return response.json()
 
 @app.route('/', methods=['GET'])
