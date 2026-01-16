@@ -3,13 +3,13 @@ const cors = require('cors');
 const pool = require('./db');
 const multer = require('multer');
 const path = require('path');
-
+const cors = require('cors'); // Bu satırı ekle
 const app = express();
 const PORT = 5000;
 
 app.use(cors());
 app.use(express.json());
-
+app.use(cors()); // Güvenlik duvarını indirir, herkes erişebilir
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const createTables = async () => {
