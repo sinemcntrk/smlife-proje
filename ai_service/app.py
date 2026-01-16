@@ -7,54 +7,57 @@ import json
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# API Key Kontrolü
 API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 if API_KEY:
     genai.configure(api_key=API_KEY)
 
-print("✅ Google Gemini AI Servisi (v2) Hazır!")
+print("✅ AI Servisi (Multi-Model Modu) Hazır!")
 
 def analyze_image_with_gemini(image_data, mime_type):
-    """Resmi Google Gemini'ye gönderir"""
-    try:
-        # Önce en hızlı ve yeni modeli dene
-        model_name = 'gemini-1.5-flash'
-        
-        # Prompt (Emir)
-        prompt = """
-        Sen uzman bir diyetisyensin. Bu resimdeki yiyeceği analiz et.
-        Bana SADECE geçerli bir JSON formatında şu verileri ver:
-        {
-            "food_name": "Yemeğin Türkçe Adı",
-            "calories": 100,
-            "protein": 10,
-            "carbs": 20,
-            "fat": 5,
-            "confidence": 0.95
-        }
-        Eğer resimde yemek yoksa "food_name" kısmına "Yemek Tespit Edilemedi" yaz.
-        Sadece JSON döndür, markdown backticks (```json) kullanma.
-        """
+    # Denenecek modellerin listesi (Biri çalışmazsa diğerine geçer)
+    models_to_try = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-pro-vision']
+    
+    last_error = ""
 
-        model = genai.GenerativeModel(model_name)
-        
-        response = model.generate_content([
-            {'mime_type': mime_type, 'data': image_data},
-            prompt
-        ])
-        
-        # Gelen yanıtı temizle
-        text_response = response.text.replace("```json", "").replace("```", "").strip()
-        return json.loads(text_response)
+    prompt = """
+    Sen uzman bir diyetisyensin. Bu resimdeki yiyeceği analiz et.
+    Bana SADECE geçerli bir JSON formatında şu verileri ver:
+    {
+        "food_name": "Yemeğin Türkçe Adı",
+        "calories": 100,
+        "protein": 10,
+        "carbs": 20,
+        "fat": 5,
+        "confidence": 0.95
+    }
+    Ekstra hiçbir açıklama yapma. Sadece JSON.
+    """
 
-    except Exception as e:
-        # Hata detayını döndür
-        return {"error_details": str(e)}
+    for model_name in models_to_try:
+        try:
+            print(f"📡 Deneniyor: {model_name}...")
+            model = genai.GenerativeModel(model_name)
+            
+            response = model.generate_content([
+                {'mime_type': mime_type, 'data': image_data},
+                prompt
+            ])
+            
+            text_response = response.text.replace("```json", "").replace("```", "").strip()
+            return json.loads(text_response)
+
+        except Exception as e:
+            print(f"❌ {model_name} başarısız oldu: {str(e)}")
+            last_error = str(e)
+            continue # Bir sonraki modeli dene
+
+    # Hiçbiri çalışmazsa hata dön
+    return {"error_details": f"Tüm modeller denendi ama başarısız oldu. Son hata: {last_error}"}
 
 @app.route('/', methods=['GET'])
 def home():
-    return "Google Gemini AI Servisi Çalışıyor! 🧠"
+    return "AI Servisi Çalışıyor! 🧠"
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -64,7 +67,7 @@ def predict():
     file = request.files['file']
     
     if not API_KEY:
-        return jsonify({'error': 'SUNUCU HATASI: GOOGLE_API_KEY eksik!'}), 500
+        return jsonify({'error': 'API Key Eksik!'}), 500
 
     try:
         mime_type = file.mimetype or "image/jpeg"
@@ -86,7 +89,7 @@ def predict():
         })
 
     except Exception as e:
-        return jsonify({'error': f"Sistem Hatası: {str(e)}"}), 500
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))
