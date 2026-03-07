@@ -16,7 +16,7 @@ print("✅ AI Servisi (Multi-Model Modu) Hazır!")
 
 def analyze_image_with_gemini(image_data, mime_type):
     # Denenecek modellerin listesi (Biri çalışmazsa diğerine geçer)
-    models_to_try = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-pro-vision']
+    model = genai.GenerativeModel('gemini-1.5-flash')
     
     last_error = ""
 
