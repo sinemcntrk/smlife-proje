@@ -295,5 +295,20 @@ app.get('/chat/inbox/:user', async (req, res) => {
     res.status(500).json({ error: "Sohbetler getirilemedi" });
   }
 });
+// 6. İki Kişi Arasındaki Mesaj Geçmişini Çek
+app.get('/chat/history/:user1/:user2', async (req, res) => {
+  const { user1, user2 } = req.params;
+  try {
+    const result = await pool.query(`
+      SELECT * FROM bitirme_messages 
+      WHERE (sender = $1 AND receiver = $2) OR (sender = $2 AND receiver = $1)
+      ORDER BY created_at ASC
+    `, [user1, user2]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Mesaj geçmişi çekilemedi" });
+  }
+});
 
 app.listen(PORT, () => console.log(`🚀 Server ${PORT} portunda çalışıyor!`));
