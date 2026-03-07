@@ -12,48 +12,44 @@ API_KEY = os.environ.get("GOOGLE_API_KEY")
 if API_KEY:
     genai.configure(api_key=API_KEY)
 
-print("✅ AI Servisi (Multi-Model Modu) Hazır!")
+print("✅ AI Servisi (Gemini 1.5 Flash Modu) Hazır!")
 
 def analyze_image_with_gemini(image_data, mime_type):
-    # Denenecek modellerin listesi (Biri çalışmazsa diğerine geçer)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
-    last_error = ""
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        prompt = """
+        Sen uzman bir diyetisyensin. Bu resimdeki yiyeceği analiz et.
+        Bana SADECE geçerli bir JSON formatında şu verileri ver:
+        {
+            "food_name": "Yemeğin Türkçe Adı",
+            "calories": 100,
+            "protein": 10,
+            "carbs": 20,
+            "fat": 5,
+            "confidence": 0.95
+        }
+        Ekstra hiçbir açıklama yapma. Sadece JSON.
+        """
 
-    prompt = """
-    Sen uzman bir diyetisyensin. Bu resimdeki yiyeceği analiz et.
-    Bana SADECE geçerli bir JSON formatında şu verileri ver:
-    {
-        "food_name": "Yemeğin Türkçe Adı",
-        "calories": 100,
-        "protein": 10,
-        "carbs": 20,
-        "fat": 5,
-        "confidence": 0.95
-    }
-    Ekstra hiçbir açıklama yapma. Sadece JSON.
-    """
+        response = model.generate_content([
+            {'mime_type': mime_type, 'data': image_data},
+            prompt
+        ])
+        
+        # JSON temizleme işlemi (Gemini'nin süslü kod bloklarını filtreliyoruz)
+        text_response = response.text.strip()
+        
+        if "```json" in text_response:
+            text_response = text_response.split("```json")[1].split("```")[0].strip()
+        elif "```" in text_response:
+            text_response = text_response.split("```")[1].split("```")[0].strip()
 
-    for model_name in models_to_try:
-        try:
-            print(f"📡 Deneniyor: {model_name}...")
-            model = genai.GenerativeModel(model_name)
-            
-            response = model.generate_content([
-                {'mime_type': mime_type, 'data': image_data},
-                prompt
-            ])
-            
-            text_response = response.text.replace("```json", "").replace("```", "").strip()
-            return json.loads(text_response)
+        return json.loads(text_response)
 
-        except Exception as e:
-            print(f"❌ {model_name} başarısız oldu: {str(e)}")
-            last_error = str(e)
-            continue # Bir sonraki modeli dene
-
-    # Hiçbiri çalışmazsa hata dön
-    return {"error_details": f"Tüm modeller denendi ama başarısız oldu. Son hata: {last_error}"}
+    except Exception as e:
+        print(f"❌ Yapay Zeka Hatası: {str(e)}")
+        return {"error_details": str(e)}
 
 @app.route('/', methods=['GET'])
 def home():
