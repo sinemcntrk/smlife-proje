@@ -15,6 +15,12 @@ const pool = new Pool({
   },
 });
 
+// 🛡️ İŞTE HAYAT KURTARAN KOD BURASI:
+// Veritabanı bağlantısı arka planda kopsa bile Node.js sunucusunun çökmesini engeller!
+pool.on('error', (err, client) => {
+  console.error('⚠️ Beklenmeyen Veritabanı Hatası (Sunucu çökmesi engellendi):', err.message);
+});
+
 pool.connect()
   .then(() => console.log('✅ Veritabanına Başarıyla Bağlandı! (Neon/Cloud)'))
   .catch(err => console.error('❌ Veritabanı Bağlantı Hatası:', err.message));
