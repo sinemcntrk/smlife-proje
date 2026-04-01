@@ -3,8 +3,15 @@ const cors = require('cors');
 const pool = require('./db');
 const multer = require('multer');
 const path = require('path');
+// 🛡️ YENİ GÜVENLİK PAKETLERİ
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
 const app = express();
 const PORT = 5000;
+
+// 🔑 JWT Gizli Anahtarı (Gerçek projelerde .env dosyasında tutulur)
+const JWT_SECRET = 'smlife_bitirme_projesi_gizli_anahtari_2026';
 
 app.use(cors());
 app.use(express.json());
@@ -12,12 +19,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const createTables = async () => {
   try {
-    // Mevcut Tablolar...
     await pool.query(`CREATE TABLE IF NOT EXISTS son_users (
       id SERIAL PRIMARY KEY,
       name VARCHAR(100),
       email VARCHAR(100) UNIQUE,
-      password VARCHAR(100) NOT NULL,
+      password VARCHAR(255) NOT NULL, -- Şifrelenmiş veri uzun olacağı için 255 yaptık
       goal VARCHAR(50),
       current_weight VARCHAR(10),
       target_weight VARCHAR(10),
@@ -68,7 +74,6 @@ const createTables = async () => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );`);
 
-    // 🌟 YENİ EKLENEN TABLOLAR (TOPLULUK VE SOHBET İÇİN)
     await pool.query(`CREATE TABLE IF NOT EXISTS bitirme_community_posts (
       id SERIAL PRIMARY KEY,
       username VARCHAR(100),
@@ -86,7 +91,7 @@ const createTables = async () => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );`);
 
-    console.log("Tablolar Hazır/Kontrol Edildi (Sosyal Medya Modülleri Dahil 🌍)");
+    console.log("Tablolar Hazır/Kontrol Edildi (Güvenlik Modülleri Dahil 🛡️)");
   } catch (err) {
     console.error("Tablo hatası:", err.message);
   }
@@ -116,8 +121,6 @@ const mergeData = (emptyDays, dbData) => {
   });
 };
 
-// ... (Mevcut Endpoint'lerin Tamamı - Login, Register, Water, Sleep, Food, Exercise vb.)
-// Mevcut Kodlarının Aynısı:
 app.get('/graph-data/:user', async (req, res) => {
   const { user } = req.params;
   try {
@@ -129,21 +132,53 @@ app.get('/graph-data/:user', async (req, res) => {
   } catch (err) { res.status(500).send("Hata"); }
 });
 
+// ==========================================================
+// 🛡️ GÜVENLİ KAYIT OL (REGISTER)
+// ==========================================================
 app.post('/register', async (req, res) => {
   const { name, goal, current_weight, target_weight, height, birthdate, gender, diet_type, activity_level, email, password, sports } = req.body;
   try {
+    // 1. Şifreyi Bcrypt ile hashle (şifrele)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const sportsString = sports && Array.isArray(sports) ? sports.join(', ') : '';
-    const newUser = await pool.query(`INSERT INTO son_users (name, goal, current_weight, target_weight, height, birthdate, gender, diet_type, activity_level, email, password, sports) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`, [name, goal, current_weight, target_weight, height, birthdate, gender, diet_type, activity_level, email, password, sportsString]);
+    
+    // 2. Hashlenmiş şifreyi veritabanına kaydet (Artık açık şifre yok!)
+    const newUser = await pool.query(
+      `INSERT INTO son_users (name, goal, current_weight, target_weight, height, birthdate, gender, diet_type, activity_level, email, password, sports) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`, 
+      [name, goal, current_weight, target_weight, height, birthdate, gender, diet_type, activity_level, email, hashedPassword, sportsString]
+    );
+    
     res.json({ success: true, user: newUser.rows[0] });
   } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
+// ==========================================================
+// 🛡️ GÜVENLİ GİRİŞ YAP (LOGIN) + JWT TOKEN ÜRETİMİ
+// ==========================================================
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await pool.query('SELECT * FROM son_users WHERE email = $1 AND password = $2', [email, password]);
-    if (user.rows.length > 0) res.json({ success: true, user: user.rows[0] });
-    else res.status(401).json({ success: false, message: "Hatalı giriş" });
+    // 1. Kullanıcıyı e-postasına göre bul
+    const user = await pool.query('SELECT * FROM son_users WHERE email = $1', [email]);
+    
+    if (user.rows.length === 0) {
+      return res.status(401).json({ success: false, message: "Kullanıcı bulunamadı" });
+    }
+
+    // 2. Girilen şifre ile veritabanındaki hash'lenmiş şifreyi karşılaştır
+    const validPassword = await bcrypt.compare(password, user.rows[0].password);
+    
+    if (!validPassword) {
+      return res.status(401).json({ success: false, message: "Hatalı şifre" });
+    }
+
+    // 3. Şifre doğruysa, JWT Token oluştur
+    const token = jwt.sign({ id: user.rows[0].id, email: user.rows[0].email }, JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({ success: true, user: user.rows[0], token: token });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -215,12 +250,6 @@ app.get('/weekly-exercise/:user', async (req, res) => {
   } catch (err) { res.status(500).send("Hata"); }
 });
 
-
-// ==========================================================
-// 🌟 YENİ SMLIFE 2.0 SOSYAL MEDYA VE SOHBET APİ'LERİ 🌟
-// ==========================================================
-
-// 1. Topluluğa Gönderi Paylaş (Feed)
 app.post('/community/post', async (req, res) => {
   const { username, action_text } = req.body;
   try {
@@ -235,10 +264,8 @@ app.post('/community/post', async (req, res) => {
   }
 });
 
-// 2. Tüm Topluluk Akışını Çek (En Yeniler Üstte)
 app.get('/community/feed', async (req, res) => {
   try {
-    // Profil resmini çekmek için son_users tablosuyla JOIN yaptık.
     const result = await pool.query(`
       SELECT p.id, p.username, p.action_text, p.likes, p.created_at, u.profile_pic 
       FROM bitirme_community_posts p
@@ -252,7 +279,6 @@ app.get('/community/feed', async (req, res) => {
   }
 });
 
-// 3. Gönderiyi Beğen / Alkışla
 app.post('/community/like/:id', async (req, res) => {
   try {
     await pool.query("UPDATE bitirme_community_posts SET likes = likes + 1 WHERE id = $1", [req.params.id]);
@@ -262,7 +288,6 @@ app.post('/community/like/:id', async (req, res) => {
   }
 });
 
-// 4. Özel Mesaj Gönder (Chat)
 app.post('/chat/send', async (req, res) => {
   const { sender, receiver, message_text } = req.body;
   try {
@@ -277,7 +302,6 @@ app.post('/chat/send', async (req, res) => {
   }
 });
 
-// 5. Gelen Kutusu (Kullanıcının Konuştuğu Kişiler)
 app.get('/chat/inbox/:user', async (req, res) => {
   const { user } = req.params;
   try {
@@ -295,7 +319,7 @@ app.get('/chat/inbox/:user', async (req, res) => {
     res.status(500).json({ error: "Sohbetler getirilemedi" });
   }
 });
-// 6. İki Kişi Arasındaki Mesaj Geçmişini Çek
+
 app.get('/chat/history/:user1/:user2', async (req, res) => {
   const { user1, user2 } = req.params;
   try {

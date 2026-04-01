@@ -1,13 +1,393 @@
-body {
+/* --- index.css (Web Sitesinin Tüm Stilleri) --- */
+
+/* 1. GLOBAL AYARLAR (Yazı Tipi ve Temizlik) */
+* {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  scroll-behavior: smooth; /* Sayfa içi linklere yumuşak kayma */
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+  background-color: #f8fafc; /* Hafif gri arka plan */
+  color: #1e293b;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+/* 🚀 2. ÜST MENÜ (NAVBAR) STİLLERİ */
+.home-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 8%;
+  background-color: white;
+  position: sticky; /* Sayfanın tepesine yapışır */
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+
+.home-logo {
+  font-size: 28px;
+  font-weight: 900;
+  color: #10b981; /* SMLife Yeşili */
+  letter-spacing: -1px;
+}
+
+.home-logo span {
+  color: #0f172a; /* LIFE kısmı koyu */
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 30px;
+  align-items: center;
+}
+
+.nav-item {
+  color: #475569;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  color: #10b981;
+}
+
+/* Dropdown Menü (Araçlar) */
+.nav-dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  display: none; /* Varsayılan olarak gizli */
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  min-width: 220px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  padding: 10px 0;
+  margin-top: 15px;
+  z-index: 100;
+}
+
+.nav-dropdown:hover .dropdown-menu {
+  display: block; /* Üzerine gelince göster */
+}
+
+.dropdown-item {
+  display: block;
+  padding: 12px 20px;
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dropdown-item:hover {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+/* Sağdaki Butonlar */
+.auth-buttons {
+  display: flex;
+  gap: 25px;
+  margin-left: 25px;
+  align-items: center;
+}
+
+.nav-item-register {
+  color: #10b981; /* SMLife Yeşili yazı */
+  border: 2px solid #10b981; /* Yeşil çerçeve */
+  padding: 10px 22px; /* Çevresinde boşluk */
+  border-radius: 12px; /* Köşeleri yuvarlak */
+  font-weight: 700;
+  font-size: 15px;
+  background-color: transparent; /* İçi boş */
+  transition: all 0.3s ease;
+}
+
+.nav-item-register:hover {
+  background-color: #ecfdf5; /* Üzerine gelince çok hafif yeşil dolgu */
+  transform: translateY(-2px); /* Hafif yukarı kalkma efekti */
+}
+
+.login-btn {
+  background-color: #10b981;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
+.login-btn:hover {
+  background-color: #059669;
+  transform: translateY(-2px);
+}
+
+/* 🚀 3. ANA BAŞLIK (HERO) STİLLERİ */
+.hero-section {
+  text-align: center;
+  padding: 120px 10% 80px 10%;
+  background-color: white;
+  border-bottom-left-radius: 50px;
+  border-bottom-right-radius: 50px;
+}
+
+.hero-title {
+  font-size: 56px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 25px;
+  letter-spacing: -2px;
+}
+
+.hero-text {
+  font-size: 20px;
+  color: #64748b;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* 🚀 4. HESAPLAMA ARAÇLARI (CARD GRID) STİLLERİ */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  padding: 80px 8%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background-color: white;
+  padding: 40px 30px;
+  border-radius: 24px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  border-color: #86efac;
+  box-shadow: 0 20px 40px rgba(16, 185, 129, 0.08);
+}
+
+.card-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.card-title .emoji {
+  margin-right: 10px;
+}
+
+.card-desc {
+  font-size: 15px;
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 25px;
+  flex-grow: 1; /* Butonu alta iter */
+}
+
+.card-link {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 15px;
+  align-self: flex-start;
+}
+
+.card-link:hover {
+  color: #059669;
+}
+
+/* 🚀 5. MOBİL UYGULAMA ÖZELLİKLERİ STİLLERİ */
+.app-features-section {
+  padding: 100px 8%;
+  background-color: white;
+  margin-top: 50px;
+  border-radius: 50px;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 70px;
+}
+
+.section-header h2 {
+  font-size: 40px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -1px;
+}
+
+.section-header p {
+  font-size: 18px;
+  color: #64748b;
+  margin-top: 15px;
+  max-width: 550px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 30px;
+}
+
+.app-card {
+  background-color: #f8fafc;
+  padding: 40px 25px;
+  border-radius: 20px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+
+.app-card:hover {
+  background-color: #ecfdf5;
+  border-color: #10b981;
+}
+
+.app-icon {
+  font-size: 48px;
+  margin-bottom: 25px;
+  display: block;
+}
+
+.app-card h4 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.app-card p {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* --- Bize Ulaşın (Contact) Bölümü --- */
+.contact-section {
+  padding: 100px 8%;
+  background-color: white;
+}
+
+.contact-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 50px;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: center;
+}
+
+.contact-info {
+  flex: 1;
+  min-width: 300px;
+}
+
+.contact-info h2 {
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: #0f172a;
+}
+
+.contact-info p {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.info-item {
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+}
+
+.info-item span {
+  margin-left: 10px;
+  color: #10b981;
+}
+
+.contact-form {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background: #f8fafc;
+  padding: 40px;
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+}
+
+.contact-form input, .contact-form textarea {
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.contact-form input:focus, .contact-form textarea:focus {
+  border-color: #10b981;
+}
+
+.contact-form button {
+  cursor: pointer;
+  border: none;
+  margin-top: 10px;
+}
+
+/* 🚀 7. FOOTER STİLLERİ */
+.home-footer {
+  background-color: #0f172a; /* Koyu Lacivert Footer */
+  padding: 60px 8%;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.footer-logo {
+  font-size: 26px;
+  font-weight: 900;
+  color: white;
+}
+
+.home-footer p {
+  font-size: 14px;
 }
