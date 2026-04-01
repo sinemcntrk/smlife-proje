@@ -22,7 +22,7 @@ function App() {
         
         <Route path="/" element={<Home />} />
         
-        
+        <Route path="/ai" element={<AIScreen />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         
