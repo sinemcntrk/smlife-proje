@@ -20,7 +20,7 @@ else:
 def analyze_image_with_gemini(image_data, mime_type):
     try:
         # Gemini 1.5 Flash modelini kullanıyoruz
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
         
         prompt = """
         Sen uzman bir diyetisyensin. Bu resimdeki yiyeceği analiz et.
