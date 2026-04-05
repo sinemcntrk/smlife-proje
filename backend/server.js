@@ -97,12 +97,12 @@ const createTables = async () => {
     );`);
 
     await pool.query(`CREATE TABLE IF NOT EXISTS bitirme_community_posts (
-      id SERIAL PRIMARY KEY,
-      username VARCHAR(100),
-      action_text TEXT NOT NULL,
-      likes INTEGER DEFAULT 0,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );`);
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(100),
+  action_text TEXT NOT NULL,
+  likes INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`);
 
     await pool.query(`CREATE TABLE IF NOT EXISTS bitirme_messages (
       id SERIAL PRIMARY KEY,
@@ -307,6 +307,21 @@ app.get('/chat/history/:user1/:user2', async (req, res) => {
     const result = await pool.query(`SELECT * FROM bitirme_messages WHERE (sender = $1 AND receiver = $2) OR (sender = $2 AND receiver = $1) ORDER BY created_at ASC`, [user1, user2]);
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: "Mesaj geçmişi çekilemedi" }); }
+});
+
+app.post('/community/comment', async (req, res) => {
+  try {
+    await pool.query("INSERT INTO bitirme_comments (post_id, username, comment_text) VALUES ($1, $2, $3)", 
+    [req.body.post_id, req.body.username, req.body.comment_text]);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: "Yorum eklenemedi" }); }
+});
+
+app.get('/community/comments/:postId', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM bitirme_comments WHERE post_id = $1 ORDER BY created_at ASC", [req.params.postId]);
+    res.json(result.rows);
+  } catch (err) { res.status(500).json({ error: "Yorumlar çekilemedi" }); }
 });
 
 app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server ${PORT} portunda başarıyla çalışıyor!`));
