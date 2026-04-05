@@ -114,13 +114,12 @@ const createTables = async () => {
     );`);
 
     await pool.query(`CREATE TABLE IF NOT EXISTS bitirme_messages (
-      id SERIAL PRIMARY KEY,
-      sender VARCHAR(100),
-      receiver VARCHAR(100),
-      message_text TEXT NOT NULL,
-      is_read BOOLEAN DEFAULT FALSE,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );`);
+  id SERIAL PRIMARY KEY,
+  sender_username VARCHAR(100),
+  receiver_username VARCHAR(100),
+  message_text TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`);
 
     console.log("Tablolar Hazır/Kontrol Edildi (Railway Uyumlu 🛡️)");
   } catch (err) {
@@ -309,7 +308,10 @@ app.get('/chat/history/:user1/:user2', async (req, res) => {
       [user1, user2]
     );
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: "Mesajlar çekilemedi" }); }
+  } catch (err) {
+    console.error("DB Hatası:", err); // Railway loglarında hatayı görmeni sağlar
+    res.status(500).json({ error: "Mesajlar çekilemedi", details: err.message });
+  }
 });
 
 app.get('/chat/inbox/:user', async (req, res) => {
