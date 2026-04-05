@@ -293,9 +293,23 @@ app.post('/community/like/:id', async (req, res) => {
 });
 
 app.post('/chat/send', async (req, res) => {
-  const { sender, receiver, message_text } = req.body;
-  try { await pool.query("INSERT INTO bitirme_messages (sender, receiver, message_text) VALUES ($1, $2, $3)", [sender, receiver, message_text]); res.json({ success: true }); } 
-  catch (err) { res.status(500).json({ success: false, error: "Mesaj gönderilemedi" }); }
+  const { sender, receiver, message } = req.body;
+  try {
+    await pool.query("INSERT INTO bitirme_messages (sender_username, receiver_username, message_text) VALUES ($1, $2, $3)", 
+    [sender, receiver, message]);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: "Mesaj gönderilemedi" }); }
+});
+
+app.get('/chat/history/:user1/:user2', async (req, res) => {
+  try {
+    const { user1, user2 } = req.params;
+    const result = await pool.query(
+      "SELECT * FROM bitirme_messages WHERE (sender_username = $1 AND receiver_username = $2) OR (sender_username = $2 AND receiver_username = $1) ORDER BY created_at ASC",
+      [user1, user2]
+    );
+    res.json(result.rows);
+  } catch (err) { res.status(500).json({ error: "Mesajlar çekilemedi" }); }
 });
 
 app.get('/chat/inbox/:user', async (req, res) => {
