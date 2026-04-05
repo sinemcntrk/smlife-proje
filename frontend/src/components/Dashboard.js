@@ -161,10 +161,10 @@ const Dashboard = () => {
 
   const fetchUserDetails = async (user) => {
     try {
-        const res = await fetch(`https://smlife-backend.onrender.com/user-details/${user}`);
+        const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/user-details/${user}`);
         const data = await res.json();
         if(data.current_weight) { setUserWeight(parseInt(data.current_weight)); }
-        if(data.profile_pic) { setProfilePic(`https://smlife-backend.onrender.com${data.profile_pic}`); }
+        if(data.profile_pic) { setProfilePic(`https://sm-life-akilli-yasam-1007.up.railway.app${data.profile_pic}`); }
         
         const calculatedGoal = calculateTDEE(data.current_weight, data.height, data.birthdate, data.gender, data.activity_level);
         setCalorieGoal(calculatedGoal);
@@ -173,24 +173,24 @@ const Dashboard = () => {
 
   const fetchWeeklyExercise = async (user) => {
     try {
-        const res = await fetch(`https://smlife-backend.onrender.com/weekly-exercise/${user}`);
+        const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/weekly-exercise/${user}`);
         const data = await res.json();
         setWeeklyMinutes(data.total_min);
     } catch (err) { console.error(err); }
   };
 
-  const fetchHistory = async (user) => { try { const res = await fetch(`https://smlife-backend.onrender.com/history/${user}`); setHistory(await res.json()); } catch (err) {} };
+  const fetchHistory = async (user) => { try { const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/history/${user}`); setHistory(await res.json()); } catch (err) {} };
   
   const fetchExerciseHistory = async (user) => { 
     try { 
-        const res = await fetch(`https://smlife-backend.onrender.com/exercises/${user}`); 
+        const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/exercises/${user}`); 
         const data = await res.json();
         setExerciseHistory(data); 
     } catch (err) { console.error(err); } 
   };
-  const fetchWater = async (user) => { try { const res = await fetch(`https://smlife-backend.onrender.com/water/${user}`); setWaterTotal((await res.json()).total); } catch (err) {} };
-  const fetchSleep = async (user) => { try { const res = await fetch(`https://smlife-backend.onrender.com/sleep/${user}`); const data = await res.json(); setSleepHours(data.duration); } catch (err) {} };
-  const fetchGraphData = async (user) => { try { const res = await fetch(`https://smlife-backend.onrender.com/graph-data/${user}`); setGraphData(await res.json()); } catch (err) {} };
+  const fetchWater = async (user) => { try { const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/water/${user}`); setWaterTotal((await res.json()).total); } catch (err) {} };
+  const fetchSleep = async (user) => { try { const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/sleep/${user}`); const data = await res.json(); setSleepHours(data.duration); } catch (err) {} };
+  const fetchGraphData = async (user) => { try { const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/graph-data/${user}`); setGraphData(await res.json()); } catch (err) {} };
 
   const handleProfilePicUpload = async (e) => {
     const file = e.target.files[0];
@@ -199,10 +199,10 @@ const Dashboard = () => {
     formData.append('file', file);
     formData.append('username', userName);
     try {
-        const res = await fetch('https://smlife-backend.onrender.com/upload-pp', { method: 'POST', body: formData });
+        const res = await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/upload-pp', { method: 'POST', body: formData });
         const data = await res.json();
         if (data.success) {
-            setProfilePic(`https://smlife-backend.onrender.com${data.filePath}?v=${Date.now()}`);
+            setProfilePic(`https://sm-life-akilli-yasam-1007.up.railway.app${data.filePath}?v=${Date.now()}`);
             alert("Profil fotoğrafı güncellendi!");
         } else { alert("Hata oluştu."); }
     } catch (error) { console.error("Upload hatası:", error); }
@@ -212,13 +212,13 @@ const Dashboard = () => {
     const currentVal = Number(waterTotal);
     const nextVal = currentVal + amount;
     if (amount < 0 && nextVal < 0) { return alert("Su miktarı 0'dan az olamaz!"); }
-    await fetch('https://smlife-backend.onrender.com/add-water', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username: userName, amount }) });
+    await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/add-water', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username: userName, amount }) });
     fetchWater(userName); fetchGraphData(userName);
   };
 
   const saveSleep = async () => {
     if (!calculatedSleep) return alert("Geçerli saat girin!");
-    await fetch('https://smlife-backend.onrender.com/set-sleep', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username: userName, duration: calculatedSleep }) });
+    await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/set-sleep', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username: userName, duration: calculatedSleep }) });
     fetchSleep(userName); fetchGraphData(userName); alert(`Uyku kaydedildi: ${calculatedSleep} saat`);
     setBedTime(""); setWakeTime(""); setCalculatedSleep(null);
   };
@@ -256,7 +256,7 @@ const Dashboard = () => {
       setExerciseHistory(prev => [newActivity, ...prev]); 
 
       try {
-        await fetch('https://smlife-backend.onrender.com/add-exercise', { 
+        await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/add-exercise', { 
             method: 'POST', 
             headers: {'Content-Type': 'application/json'}, 
             body: JSON.stringify({ 
@@ -276,7 +276,7 @@ const Dashboard = () => {
   
   const handleManualAdd = async (foodItem) => {
     try {
-        await fetch('https://smlife-backend.onrender.com/save-analysis', { 
+        await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/save-analysis', { 
             method: 'POST', headers: {'Content-Type': 'application/json'}, 
             body: JSON.stringify({ 
                 username: userName, 
@@ -296,7 +296,7 @@ const Dashboard = () => {
   const handleDeleteFood = async (id) => {
       if(!window.confirm("Bu yemeği silmek istediğine emin misin?")) return;
       try {
-          await fetch(`https://smlife-backend.onrender.com/delete-food/${id}`, { method: 'DELETE' });
+          await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/delete-food/${id}`, { method: 'DELETE' });
           fetchHistory(userName);
           fetchGraphData(userName);
       } catch (e) { alert("Silme hatası"); }
@@ -309,11 +309,11 @@ const Dashboard = () => {
     setLoading(true);
     const formData = new FormData(); formData.append('file', selectedFile);
     try {
-        const aiRes = await fetch('https://smlife-ai.onrender.com/predict', { method: 'POST', body: formData });
+        const aiRes = await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/predict', { method: 'POST', body: formData });
         const aiData = await aiRes.json();
         if (aiData.success) {
             setAiResult(aiData);
-            await fetch('https://smlife-backend.onrender.com/save-analysis', { 
+            await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/save-analysis', { 
                 method: 'POST', 
                 headers: {'Content-Type': 'application/json'}, 
                 body: JSON.stringify({ 

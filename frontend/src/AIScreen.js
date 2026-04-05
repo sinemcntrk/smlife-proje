@@ -26,7 +26,7 @@ const AIScreen = () => {
 
     try {
       // Yeni aktif AI servis adresin
-      const response = await axios.post('https://smlife-ai.onrender.com/predict', formData, {
+      const response = await axios.post('https://smlife-proje-production.up.railway.app/predict', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 

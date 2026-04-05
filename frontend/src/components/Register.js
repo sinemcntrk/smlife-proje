@@ -47,7 +47,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://smlife-backend.onrender.com/register', {
+      const response = await fetch('https:/sm-life-akilli-yasam-1007.up.railway.app/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
