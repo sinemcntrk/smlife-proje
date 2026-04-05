@@ -259,11 +259,18 @@ app.post('/add-exercise', async (req, res) => {
   catch (err) { res.status(500).send("Hata"); }
 });
 
-app.get('/weekly-exercise/:user', async (req, res) => {
+// EGZERSİZ GEÇMİŞİNİ GETİRME KAPISI (Bunu ekliyoruz!)
+app.get('/exercises/:user', async (req, res) => {
   try {
-    const result = await pool.query(`SELECT SUM(duration_min) as total_min FROM bitirme_exercise_logs WHERE username = $1 AND created_at >= CURRENT_DATE - INTERVAL '7 days'`, [req.params.user]);
-    res.json({ total_min: parseInt(result.rows[0].total_min || 0) });
-  } catch (err) { res.status(500).send("Hata"); }
+    const result = await pool.query(
+      "SELECT * FROM bitirme_exercise_logs WHERE username = $1 ORDER BY created_at DESC LIMIT 20", 
+      [req.params.user]
+    );
+    res.json(result.rows);
+  } catch (err) { 
+    console.error("Egzersiz geçmişi çekilemedi:", err);
+    res.status(500).send("Hata"); 
+  }
 });
 
 app.post('/community/post', async (req, res) => {
