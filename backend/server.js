@@ -97,12 +97,21 @@ const createTables = async () => {
     );`);
 
     await pool.query(`CREATE TABLE IF NOT EXISTS bitirme_community_posts (
-  id SERIAL PRIMARY KEY,
-  username VARCHAR(100),
-  action_text TEXT NOT NULL,
-  likes INTEGER DEFAULT 0,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);`);
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(100),
+      action_text TEXT NOT NULL,
+      likes INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );`);
+
+    // 2. Sonra Yorumlar Tablosu (Foreign Key ve doğru sütunlarla)
+    await pool.query(`CREATE TABLE IF NOT EXISTS bitirme_comments (
+      id SERIAL PRIMARY KEY,
+      post_id INTEGER,
+      username VARCHAR(100),
+      comment_text TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );`);
 
     await pool.query(`CREATE TABLE IF NOT EXISTS bitirme_messages (
       id SERIAL PRIMARY KEY,
