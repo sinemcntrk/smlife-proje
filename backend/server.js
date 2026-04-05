@@ -3,27 +3,36 @@ const cors = require('cors');
 const pool = require('./db');
 const multer = require('multer');
 const path = require('path');
-// 🛡️ YENİ GÜVENLİK PAKETLERİ
+const fs = require('fs'); // 📂 Klasör kontrolü için eklendi
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const app = express();
-const PORT = 5000;
 
-// 🔑 JWT Gizli Anahtarı (Gerçek projelerde .env dosyasında tutulur)
-const JWT_SECRET = 'smlife_bitirme_projesi_gizli_anahtari_2026';
+// 🚀 KRİTİK: Railway portu dinamik olarak atar. 5000'de sabit kalırsan hata alırsın.
+const PORT = process.env.PORT || 5000; 
+
+// 🔑 JWT Gizli Anahtarı (Railway Variables kısmına eklemeni öneririm)
+const JWT_SECRET = process.env.JWT_SECRET || 'smlife_bitirme_projesi_gizli_anahtari_2026';
 
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// 📂 Yükleme klasörünün varlığını kontrol et (Yoksa Railway hata verir)
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+app.use('/uploads', express.static(uploadDir));
+
+// --- TABLO OLUŞTURMA BÖLÜMÜ (Aynı bıraktım, yapın doğru) ---
 const createTables = async () => {
   try {
     await pool.query(`CREATE TABLE IF NOT EXISTS son_users (
       id SERIAL PRIMARY KEY,
       name VARCHAR(100),
       email VARCHAR(100) UNIQUE,
-      password VARCHAR(255) NOT NULL, -- Şifrelenmiş veri uzun olacağı için 255 yaptık
+      password VARCHAR(255) NOT NULL,
       goal VARCHAR(50),
       current_weight VARCHAR(10),
       target_weight VARCHAR(10),
@@ -91,20 +100,21 @@ const createTables = async () => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );`);
 
-    console.log("Tablolar Hazır/Kontrol Edildi (Güvenlik Modülleri Dahil 🛡️)");
+    console.log("Tablolar Hazır/Kontrol Edildi (Railway Uyumlu 🛡️)");
   } catch (err) {
     console.error("Tablo hatası:", err.message);
   }
 };
-
 createTables();
 
+// --- MULTER AYARLARI ---
 const storage = multer.diskStorage({
   destination: (req, file, cb) => { cb(null, 'uploads/'); },
   filename: (req, file, cb) => { cb(null, 'user-' + Date.now() + path.extname(file.originalname)); }
 });
 const upload = multer({ storage: storage });
 
+// --- YARDIMCI FONKSİYONLAR ---
 const getLast7Days = () => {
   const days = [];
   for (let i = 6; i >= 0; i--) {
@@ -121,6 +131,8 @@ const mergeData = (emptyDays, dbData) => {
   });
 };
 
+// --- ENDPOINT'LER ---
+
 app.get('/graph-data/:user', async (req, res) => {
   const { user } = req.params;
   try {
@@ -129,55 +141,35 @@ app.get('/graph-data/:user', async (req, res) => {
     const foodRes = await pool.query(`SELECT to_char(created_at, 'DD/MM') as date, SUM(calories) as value FROM bitirme_food_logs WHERE username = $1 GROUP BY date ORDER BY date DESC LIMIT 7`, [user]);
     const last7Days = getLast7Days();
     res.json({ water: mergeData(last7Days, waterRes.rows), sleep: mergeData(last7Days, sleepRes.rows), calories: mergeData(last7Days, foodRes.rows) });
-  } catch (err) { res.status(500).send("Hata"); }
+  } catch (err) { res.status(500).send("Grafik verisi çekilemedi"); }
 });
 
-// ==========================================================
-// 🛡️ GÜVENLİ KAYIT OL (REGISTER)
-// ==========================================================
 app.post('/register', async (req, res) => {
   const { name, goal, current_weight, target_weight, height, birthdate, gender, diet_type, activity_level, email, password, sports } = req.body;
   try {
-    // 1. Şifreyi Bcrypt ile hashle (şifrele)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
     const sportsString = sports && Array.isArray(sports) ? sports.join(', ') : '';
     
-    // 2. Hashlenmiş şifreyi veritabanına kaydet (Artık açık şifre yok!)
     const newUser = await pool.query(
       `INSERT INTO son_users (name, goal, current_weight, target_weight, height, birthdate, gender, diet_type, activity_level, email, password, sports) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`, 
       [name, goal, current_weight, target_weight, height, birthdate, gender, diet_type, activity_level, email, hashedPassword, sportsString]
     );
-    
     res.json({ success: true, user: newUser.rows[0] });
   } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
-// ==========================================================
-// 🛡️ GÜVENLİ GİRİŞ YAP (LOGIN) + JWT TOKEN ÜRETİMİ
-// ==========================================================
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    // 1. Kullanıcıyı e-postasına göre bul
     const user = await pool.query('SELECT * FROM son_users WHERE email = $1', [email]);
-    
-    if (user.rows.length === 0) {
-      return res.status(401).json({ success: false, message: "Kullanıcı bulunamadı" });
-    }
+    if (user.rows.length === 0) return res.status(401).json({ success: false, message: "Kullanıcı bulunamadı" });
 
-    // 2. Girilen şifre ile veritabanındaki hash'lenmiş şifreyi karşılaştır
     const validPassword = await bcrypt.compare(password, user.rows[0].password);
-    
-    if (!validPassword) {
-      return res.status(401).json({ success: false, message: "Hatalı şifre" });
-    }
+    if (!validPassword) return res.status(401).json({ success: false, message: "Hatalı şifre" });
 
-    // 3. Şifre doğruysa, JWT Token oluştur
     const token = jwt.sign({ id: user.rows[0].id, email: user.rows[0].email }, JWT_SECRET, { expiresIn: '7d' });
-
     res.json({ success: true, user: user.rows[0], token: token });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -185,10 +177,13 @@ app.post('/login', async (req, res) => {
 app.post('/upload-pp', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "Dosya yüklenemedi" });
   const cleanPath = `/uploads/${req.file.filename}`;
-  try { await pool.query("UPDATE son_users SET profile_pic = $1 WHERE name = $2", [cleanPath, req.body.username]); res.json({ success: true, filePath: cleanPath }); } 
-  catch (err) { res.status(500).json({ error: "Veritabanı hatası" }); }
+  try { 
+    await pool.query("UPDATE son_users SET profile_pic = $1 WHERE name = $2", [cleanPath, req.body.username]); 
+    res.json({ success: true, filePath: cleanPath }); 
+  } catch (err) { res.status(500).json({ error: "Veritabanı hatası" }); }
 });
 
+// --- DİĞER TÜM ROUTE'LAR (Aynı bıraktım, sorunsuzlar) ---
 app.get('/user-details/:name', async (req, res) => {
   try {
     const result = await pool.query("SELECT current_weight, height, birthdate, gender, activity_level, profile_pic FROM son_users WHERE name = $1", [req.params.name]);
@@ -253,15 +248,9 @@ app.get('/weekly-exercise/:user', async (req, res) => {
 app.post('/community/post', async (req, res) => {
   const { username, action_text } = req.body;
   try {
-    const newPost = await pool.query(
-      "INSERT INTO bitirme_community_posts (username, action_text) VALUES ($1, $2) RETURNING *",
-      [username, action_text]
-    );
+    const newPost = await pool.query("INSERT INTO bitirme_community_posts (username, action_text) VALUES ($1, $2) RETURNING *", [username, action_text]);
     res.json({ success: true, post: newPost.rows[0] });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: err.message });
-  }
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
 app.get('/community/feed', async (req, res) => {
@@ -273,66 +262,38 @@ app.get('/community/feed', async (req, res) => {
       ORDER BY p.created_at DESC LIMIT 50
     `);
     res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Akış çekilemedi" });
-  }
+  } catch (err) { res.status(500).json({ error: "Akış çekilemedi" }); }
 });
 
 app.post('/community/like/:id', async (req, res) => {
-  try {
-    await pool.query("UPDATE bitirme_community_posts SET likes = likes + 1 WHERE id = $1", [req.params.id]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ success: false, error: "Beğenilemedi" });
-  }
+  try { await pool.query("UPDATE bitirme_community_posts SET likes = likes + 1 WHERE id = $1", [req.params.id]); res.json({ success: true }); } 
+  catch (err) { res.status(500).json({ success: false, error: "Beğenilemedi" }); }
 });
 
 app.post('/chat/send', async (req, res) => {
   const { sender, receiver, message_text } = req.body;
-  try {
-    await pool.query(
-      "INSERT INTO bitirme_messages (sender, receiver, message_text) VALUES ($1, $2, $3)",
-      [sender, receiver, message_text]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: "Mesaj gönderilemedi" });
-  }
+  try { await pool.query("INSERT INTO bitirme_messages (sender, receiver, message_text) VALUES ($1, $2, $3)", [sender, receiver, message_text]); res.json({ success: true }); } 
+  catch (err) { res.status(500).json({ success: false, error: "Mesaj gönderilemedi" }); }
 });
 
 app.get('/chat/inbox/:user', async (req, res) => {
   const { user } = req.params;
   try {
     const result = await pool.query(`
-      SELECT DISTINCT 
-        CASE WHEN sender = $1 THEN receiver ELSE sender END as chat_partner,
-        MAX(created_at) as last_interaction
-      FROM bitirme_messages
-      WHERE sender = $1 OR receiver = $1
-      GROUP BY chat_partner
-      ORDER BY last_interaction DESC
+      SELECT DISTINCT CASE WHEN sender = $1 THEN receiver ELSE sender END as chat_partner, MAX(created_at) as last_interaction
+      FROM bitirme_messages WHERE sender = $1 OR receiver = $1
+      GROUP BY chat_partner ORDER BY last_interaction DESC
     `, [user]);
     res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: "Sohbetler getirilemedi" });
-  }
+  } catch (err) { res.status(500).json({ error: "Sohbetler getirilemedi" }); }
 });
 
 app.get('/chat/history/:user1/:user2', async (req, res) => {
   const { user1, user2 } = req.params;
   try {
-    const result = await pool.query(`
-      SELECT * FROM bitirme_messages 
-      WHERE (sender = $1 AND receiver = $2) OR (sender = $2 AND receiver = $1)
-      ORDER BY created_at ASC
-    `, [user1, user2]);
+    const result = await pool.query(`SELECT * FROM bitirme_messages WHERE (sender = $1 AND receiver = $2) OR (sender = $2 AND receiver = $1) ORDER BY created_at ASC`, [user1, user2]);
     res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Mesaj geçmişi çekilemedi" });
-  }
+  } catch (err) { res.status(500).json({ error: "Mesaj geçmişi çekilemedi" }); }
 });
 
-app.listen(PORT, () => console.log(`🚀 Server ${PORT} portunda çalışıyor!`));
+app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server ${PORT} portunda başarıyla çalışıyor!`));
