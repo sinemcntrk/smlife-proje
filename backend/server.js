@@ -15,7 +15,20 @@ const PORT = process.env.PORT || 5000;
 // 🔑 JWT Gizli Anahtarı (Railway Variables kısmına eklemeni öneririm)
 const JWT_SECRET = process.env.JWT_SECRET || 'smlife_bitirme_projesi_gizli_anahtari_2026';
 
-app.use(cors());
+// --- YENİ CORS AYARI BAŞLANGICI ---
+const corsOptions = {
+  origin: [
+    'https://smlife-production-1007.up.railway.app', // 🌐 Yeni Frontend (Web) Linkin!
+    'http://localhost:3000', // Kendi bilgisayarında test için
+    'http://localhost:8081'  // Mobil (React Native/Expo) testin için
+  ],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true, // Giriş (Login) işlemlerinin engellenmemesi için çok kritik!
+};
+
+app.use(cors(corsOptions));
+// --- YENİ CORS AYARI BİTİŞİ ---
+
 app.use(express.json());
 
 // 📂 Yükleme klasörünün varlığını kontrol et (Yoksa Railway hata verir)

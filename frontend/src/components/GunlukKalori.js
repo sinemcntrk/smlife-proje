@@ -14,7 +14,7 @@ function GunlukKalori() {
   
   const veritabaninaKaydet = async (kaloriDegeri) => {
     try {
-      const response = await fetch('https://smlife-backend.onrender.com/api/olcum-kaydet', {
+      const response = await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/api/olcum-kaydet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

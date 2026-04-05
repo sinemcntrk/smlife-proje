@@ -161,6 +161,7 @@ const Dashboard = () => {
 
   const fetchUserDetails = async (user) => {
     try {
+        // ✅ GÜNCELLENDİ: Backend Linki
         const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/user-details/${user}`);
         const data = await res.json();
         if(data.current_weight) { setUserWeight(parseInt(data.current_weight)); }
@@ -173,24 +174,54 @@ const Dashboard = () => {
 
   const fetchWeeklyExercise = async (user) => {
     try {
+        // ✅ GÜNCELLENDİ: Backend Linki
         const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/weekly-exercise/${user}`);
         const data = await res.json();
         setWeeklyMinutes(data.total_min);
     } catch (err) { console.error(err); }
   };
 
-  const fetchHistory = async (user) => { try { const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/history/${user}`); setHistory(await res.json()); } catch (err) {} };
+  const fetchHistory = async (user) => { 
+    try { 
+      // ✅ GÜNCELLENDİ: Backend Linki
+      const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/history/${user}`); 
+      setHistory(await res.json()); 
+    } catch (err) {} 
+  };
   
   const fetchExerciseHistory = async (user) => { 
     try { 
+        // ✅ GÜNCELLENDİ: Backend Linki
         const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/exercises/${user}`); 
         const data = await res.json();
         setExerciseHistory(data); 
     } catch (err) { console.error(err); } 
   };
-  const fetchWater = async (user) => { try { const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/water/${user}`); setWaterTotal((await res.json()).total); } catch (err) {} };
-  const fetchSleep = async (user) => { try { const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/sleep/${user}`); const data = await res.json(); setSleepHours(data.duration); } catch (err) {} };
-  const fetchGraphData = async (user) => { try { const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/graph-data/${user}`); setGraphData(await res.json()); } catch (err) {} };
+
+  const fetchWater = async (user) => { 
+    try { 
+      // ✅ GÜNCELLENDİ: Backend Linki
+      const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/water/${user}`); 
+      setWaterTotal((await res.json()).total); 
+    } catch (err) {} 
+  };
+
+  const fetchSleep = async (user) => { 
+    try { 
+      // ✅ GÜNCELLENDİ: Backend Linki
+      const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/sleep/${user}`); 
+      const data = await res.json(); 
+      setSleepHours(data.duration); 
+    } catch (err) {} 
+  };
+
+  const fetchGraphData = async (user) => { 
+    try { 
+      // ✅ GÜNCELLENDİ: Backend Linki
+      const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/graph-data/${user}`); 
+      setGraphData(await res.json()); 
+    } catch (err) {} 
+  };
 
   const handleProfilePicUpload = async (e) => {
     const file = e.target.files[0];
@@ -199,6 +230,7 @@ const Dashboard = () => {
     formData.append('file', file);
     formData.append('username', userName);
     try {
+        // ✅ GÜNCELLENDİ: Backend Linki
         const res = await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/upload-pp', { method: 'POST', body: formData });
         const data = await res.json();
         if (data.success) {
@@ -212,12 +244,14 @@ const Dashboard = () => {
     const currentVal = Number(waterTotal);
     const nextVal = currentVal + amount;
     if (amount < 0 && nextVal < 0) { return alert("Su miktarı 0'dan az olamaz!"); }
+    // ✅ GÜNCELLENDİ: Backend Linki ve typo (https:/ -> https://) düzeltildi
     await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/add-water', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username: userName, amount }) });
     fetchWater(userName); fetchGraphData(userName);
   };
 
   const saveSleep = async () => {
     if (!calculatedSleep) return alert("Geçerli saat girin!");
+    // ✅ GÜNCELLENDİ: Backend Linki
     await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/set-sleep', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username: userName, duration: calculatedSleep }) });
     fetchSleep(userName); fetchGraphData(userName); alert(`Uyku kaydedildi: ${calculatedSleep} saat`);
     setBedTime(""); setWakeTime(""); setCalculatedSleep(null);
@@ -256,6 +290,7 @@ const Dashboard = () => {
       setExerciseHistory(prev => [newActivity, ...prev]); 
 
       try {
+        // ✅ GÜNCELLENDİ: Backend Linki
         await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/add-exercise', { 
             method: 'POST', 
             headers: {'Content-Type': 'application/json'}, 
@@ -276,6 +311,7 @@ const Dashboard = () => {
   
   const handleManualAdd = async (foodItem) => {
     try {
+        // ✅ GÜNCELLENDİ: Backend Linki
         await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/save-analysis', { 
             method: 'POST', headers: {'Content-Type': 'application/json'}, 
             body: JSON.stringify({ 
@@ -296,6 +332,7 @@ const Dashboard = () => {
   const handleDeleteFood = async (id) => {
       if(!window.confirm("Bu yemeği silmek istediğine emin misin?")) return;
       try {
+          // ✅ GÜNCELLENDİ: Backend Linki
           await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/delete-food/${id}`, { method: 'DELETE' });
           fetchHistory(userName);
           fetchGraphData(userName);
@@ -309,18 +346,22 @@ const Dashboard = () => {
     setLoading(true);
     const formData = new FormData(); formData.append('file', selectedFile);
     try {
-        const aiRes = await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/predict', { method: 'POST', body: formData });
+        // 🔥 GÜNCELLENDİ: AI LİNKİ BURADA! Sadece analiz isteği buraya gider.
+        const aiRes = await fetch('https://smlife-proje-production.up.railway.app/predict', { method: 'POST', body: formData });
         const aiData = await aiRes.json();
-        if (aiData.success) {
+        
+        if (aiData.success || aiData.food) { // Python çıktısına göre 'food' veya 'success' olabilir.
             setAiResult(aiData);
+            
+            // ✅ GÜNCELLENDİ: Analiz sonucu alınan veriyi Backend'e kaydetme linki
             await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/save-analysis', { 
                 method: 'POST', 
                 headers: {'Content-Type': 'application/json'}, 
                 body: JSON.stringify({ 
                     username: userName, 
-                    food_name: aiData.label, 
+                    food_name: aiData.label || aiData.food, // AI'ın döndürdüğü isim parametresi
                     calories: aiData.calories, 
-                    confidence: aiData.confidence, 
+                    confidence: aiData.confidence || 1.0, 
                     meal_type: targetMeal, 
                     protein: aiData.protein || 10, 
                     carbs: aiData.carbs || 20, 
@@ -328,8 +369,8 @@ const Dashboard = () => {
                 }) 
             });
             fetchHistory(userName); fetchGraphData(userName);
-        } else { alert("AI Hatası: " + aiData.error); }
-    } catch (e) { alert("Hata oluştu"); } finally { setLoading(false); }
+        } else { alert("AI Hatası: " + (aiData.error || "Yemek tanınamadı.")); }
+    } catch (e) { alert("Hata oluştu, AI'a bağlanılamadı."); } finally { setLoading(false); }
   };
   
   const cancelAnalysis = () => { setSelectedFile(null); setPreviewUrl(null); setAiResult(null); setTargetMeal(null); };
@@ -415,7 +456,7 @@ const Dashboard = () => {
                 <div className="card-content add-mode">
                     <div className="preview-header"><h3>{targetMeal} Ekle</h3><button className="btn-close" onClick={cancelAnalysis}>İptal</button></div>
                     {previewUrl ? (
-                        <div className="preview-box"><img src={previewUrl} alt="Yemek" /><button onClick={handleAnalyze} disabled={loading} className="btn-analyze">{loading ? "..." : "Analiz Et ve Kaydet"}</button>{aiResult && <div className="success-msg">✅ {aiResult.label} Eklendi!</div>}</div>
+                        <div className="preview-box"><img src={previewUrl} alt="Yemek" /><button onClick={handleAnalyze} disabled={loading} className="btn-analyze">{loading ? "..." : "Analiz Et ve Kaydet"}</button>{aiResult && <div className="success-msg">✅ {aiResult.label || aiResult.food} Eklendi!</div>}</div>
                     ) : (
                         <><div className="search-box-container"><input type="text" placeholder="Yemek ara..." className="food-search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} autoFocus /></div>
                         <div className="food-results-list">
