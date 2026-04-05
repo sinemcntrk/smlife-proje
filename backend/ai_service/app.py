@@ -3,24 +3,26 @@ from flask_cors import CORS
 import google.generativeai as genai
 import os
 import json
+import io
+from PIL import Image  # 📸 Resimleri Google'ın istediği formata çevirmek için eklendi
 
 app = Flask(__name__)
 # Tüm originlere izin veriyoruz (Mobil ve Web erişimi için)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# API Key'i Environment Variable'dan çekiyoruz (Render Settings -> Env Vars)
+# API Key'i Environment Variable'dan çekiyoruz
 API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 if API_KEY:
     genai.configure(api_key=API_KEY)
-    print("✅ AI Servisi (Gemini 1.5 Flash Modu) Başarıyla Yapılandırıldı!")
+    print("✅ AI Servisi (Gemini 1.5 Flash) Başarıyla Yapılandırıldı!")
 else:
-    print("⚠️ UYARI: GOOGLE_API_KEY bulunamadı! Render Env Vars kısmını kontrol et.")
+    print("⚠️ UYARI: GOOGLE_API_KEY bulunamadı! Railway/Render Env Vars kısmını kontrol et.")
 
-def analyze_image_with_gemini(image_data, mime_type):
+def analyze_image_with_gemini(image_bytes):
     try:
-        # Gemini 1.5 Flash modelini kullanıyoruz
-        model = genai.GenerativeModel('gemini-pro-vision')
+        # En stabil ve güncel model (Google'ın önerdiği standart isim)
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         prompt = """
         Sen uzman bir diyetisyensin. Bu resimdeki yiyeceği analiz et.
@@ -36,11 +38,11 @@ def analyze_image_with_gemini(image_data, mime_type):
         Ekstra hiçbir açıklama yapma. Sadece JSON formatında çıktı ver.
         """
 
+        # 📸 Resmi PIL formatına çeviriyoruz (Google'ın kabul ettiği kesin yöntem)
+        img = Image.open(io.BytesIO(image_bytes))
+
         # Resmi ve prompt'u modele gönderiyoruz
-        response = model.generate_content([
-            {'mime_type': mime_type, 'data': image_data},
-            prompt
-        ])
+        response = model.generate_content([prompt, img])
         
         # JSON temizleme (Markdown kod bloklarını temizliyoruz)
         text_response = response.text.strip()
@@ -57,7 +59,7 @@ def analyze_image_with_gemini(image_data, mime_type):
 
 @app.route('/', methods=['GET'])
 def home():
-    return "🚀 SMLife AI Servisi Çalışıyor! (Gemini 1.5 Flash)"
+    return "🚀 SMLife AI Servisi Çalışıyor! (Gemini 1.5 Flash ile Güçlendirildi)"
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -71,10 +73,9 @@ def predict():
         return jsonify({'error': 'Sunucuda API Key eksik!'}), 500
 
     try:
-        mime_type = file.mimetype or "image/jpeg"
         image_data = file.read()
         
-        result = analyze_image_with_gemini(image_data, mime_type)
+        result = analyze_image_with_gemini(image_data)
         
         if "error_details" in result:
             return jsonify({'error': f"AI Analiz Hatası: {result['error_details']}"}), 500
@@ -94,6 +95,6 @@ def predict():
         return jsonify({'error': f"Sunucu hatası: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    # Render port ayarı
+    # Railway/Render port ayarı
     port = int(os.environ.get('PORT', 5001))
     app.run(host='0.0.0.0', port=port)
