@@ -369,4 +369,39 @@ app.get('/community/comments/:postId', async (req, res) => {
   }
 });
 
+// server.js içindeki /chat endpoint'ini bununla değiştir
+
+app.post("/chat", async (req, res) => {
+  try {
+    const { message, context, image } = req.body; // 📸 Frontend'den gelen 'image' (base64) eklendi
+
+    // Yapay zekaya gidecek sistem komutu ve kullanıcı mesajı
+    const fullPrompt = `Sen profesyonel bir diyetisyen, spor koçu ve SMLife asistanısın. 
+    Kullanıcının güncel verileri: ${context}. 
+    Kullanıcının mesajı: ${message}`;
+
+    // Gemini için mesaj paketini hazırlıyoruz
+    const promptParts = [fullPrompt];
+
+    // 📸 EĞER FOTOĞRAF GELDİYSE PAKETE EKLE
+    if (image) {
+      promptParts.push({
+        inlineData: {
+          data: image,
+          mimeType: "image/jpeg", // Expo ImagePicker varsayılan olarak jpeg verir
+        },
+      });
+    }
+
+    // Seçili model (Gemini 1.5 Flash veya 2.5 Flash) ile içeriği oluştur
+    const result = await model.generateContent(promptParts);
+    const responseText = result.response.text();
+
+    res.json({ reply: responseText });
+  } catch (error) {
+    console.error("Yapay zeka hatası:", error);
+    res.status(500).json({ error: "Yapay zeka şu an yanıt veremiyor." });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server ${PORT} portunda başarıyla çalışıyor!`));
