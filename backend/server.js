@@ -3,42 +3,44 @@ const cors = require('cors');
 const pool = require('./db');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs'); // 📂 Klasör kontrolü için eklendi
+const fs = require('fs'); 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+// --- 🤖 GEMINI AI KURULUMU ---
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+// Buraya kendi Google Gemini API anahtarını yazmalısın veya Railway Variables'tan çekmelisin
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "BURAYA_KENDI_API_ANAHTARINI_YAZ"); 
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
 const app = express();
 
-// 🚀 KRİTİK: Railway portu dinamik olarak atar. 5000'de sabit kalırsan hata alırsın.
 const PORT = process.env.PORT || 5000; 
-
-// 🔑 JWT Gizli Anahtarı (Railway Variables kısmına eklemeni öneririm)
 const JWT_SECRET = process.env.JWT_SECRET || 'smlife_bitirme_projesi_gizli_anahtari_2026';
 
-// --- YENİ CORS AYARI BAŞLANGICI ---
 const corsOptions = {
   origin: [
-    'https://smlife-production-1007.up.railway.app', // 🌐 Yeni Frontend (Web) Linkin!
-    'http://localhost:3000', // Kendi bilgisayarında test için
-    'http://localhost:8081'  // Mobil (React Native/Expo) testin için
+    'https://smlife-production-1007.up.railway.app', 
+    'http://localhost:3000', 
+    'http://localhost:8081'  
   ],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true, // Giriş (Login) işlemlerinin engellenmemesi için çok kritik!
+  credentials: true, 
 };
 
 app.use(cors(corsOptions));
-// --- YENİ CORS AYARI BİTİŞİ ---
 
-app.use(express.json());
+// 🚀 KRİTİK: Fotoğraf analizi için Node.js sınırlarını 50MB'a çıkardık
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// 📂 Yükleme klasörünün varlığını kontrol et (Yoksa Railway hata verir)
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 app.use('/uploads', express.static(uploadDir));
 
-// --- TABLO OLUŞTURMA BÖLÜMÜ (Aynı bıraktım, yapın doğru) ---
+// --- TABLO OLUŞTURMA BÖLÜMÜ ---
 const createTables = async () => {
   try {
     await pool.query(`CREATE TABLE IF NOT EXISTS son_users (
@@ -104,7 +106,6 @@ const createTables = async () => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );`);
 
-    // 2. Sonra Yorumlar Tablosu (Foreign Key ve doğru sütunlarla)
     await pool.query(`CREATE TABLE IF NOT EXISTS bitirme_comments (
       id SERIAL PRIMARY KEY,
       post_id INTEGER,
@@ -114,12 +115,12 @@ const createTables = async () => {
     );`);
 
     await pool.query(`CREATE TABLE IF NOT EXISTS bitirme_messages (
-  id SERIAL PRIMARY KEY,
-  sender_username VARCHAR(100),
-  receiver_username VARCHAR(100),
-  message_text TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);`);
+      id SERIAL PRIMARY KEY,
+      sender_username VARCHAR(100),
+      receiver_username VARCHAR(100),
+      message_text TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );`);
 
     console.log("Tablolar Hazır/Kontrol Edildi (Railway Uyumlu 🛡️)");
   } catch (err) {
@@ -204,12 +205,11 @@ app.post('/upload-pp', upload.single('file'), async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Veritabanı hatası" }); }
 });
 
-// --- DİĞER TÜM ROUTE'LAR (Aynı bıraktım, sorunsuzlar) ---
 app.get('/user-details/:name', async (req, res) => {
   try {
-    const result = await pool.query("SELECT current_weight, height, birthdate, gender, activity_level, profile_pic FROM son_users WHERE name = $1", [req.params.name]);
+    const result = await pool.query("SELECT current_weight, target_weight, height, birthdate, gender, activity_level, profile_pic FROM son_users WHERE name = $1", [req.params.name]);
     if (result.rows.length > 0) res.json(result.rows[0]);
-    else res.json({ current_weight: 70, height: 170, birthdate: '2000-01-01', gender: 'Erkek', activity_level: 'Orta', profile_pic: null });
+    else res.json({ current_weight: 70, target_weight: 65, height: 170, birthdate: '2000-01-01', gender: 'Erkek', activity_level: 'Orta', profile_pic: null });
   } catch (err) { res.status(500).send("Hata"); }
 });
 
@@ -259,13 +259,9 @@ app.post('/add-exercise', async (req, res) => {
   catch (err) { res.status(500).send("Hata"); }
 });
 
-// EGZERSİZ GEÇMİŞİNİ GETİRME KAPISI (Bunu ekliyoruz!)
 app.get('/exercises/:user', async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT * FROM bitirme_exercise_logs WHERE username = $1 ORDER BY created_at DESC LIMIT 20", 
-      [req.params.user]
-    );
+    const result = await pool.query("SELECT * FROM bitirme_exercise_logs WHERE username = $1 ORDER BY created_at DESC LIMIT 20", [req.params.user]);
     res.json(result.rows);
   } catch (err) { 
     console.error("Egzersiz geçmişi çekilemedi:", err);
@@ -301,32 +297,17 @@ app.post('/community/like/:id', async (req, res) => {
 app.post('/chat/send', async (req, res) => {
   const { sender, receiver, message } = req.body;
   try {
-    await pool.query("INSERT INTO bitirme_messages (sender_username, receiver_username, message_text) VALUES ($1, $2, $3)", 
-    [sender, receiver, message]);
+    await pool.query("INSERT INTO bitirme_messages (sender_username, receiver_username, message_text) VALUES ($1, $2, $3)", [sender, receiver, message]);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: "Mesaj gönderilemedi" }); }
-});
-
-app.get('/chat/history/:user1/:user2', async (req, res) => {
-  try {
-    const { user1, user2 } = req.params;
-    const result = await pool.query(
-      "SELECT * FROM bitirme_messages WHERE (sender_username = $1 AND receiver_username = $2) OR (sender_username = $2 AND receiver_username = $1) ORDER BY created_at ASC",
-      [user1, user2]
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error("DB Hatası:", err); // Railway loglarında hatayı görmeni sağlar
-    res.status(500).json({ error: "Mesajlar çekilemedi", details: err.message });
-  }
 });
 
 app.get('/chat/inbox/:user', async (req, res) => {
   const { user } = req.params;
   try {
     const result = await pool.query(`
-      SELECT DISTINCT CASE WHEN sender = $1 THEN receiver ELSE sender END as chat_partner, MAX(created_at) as last_interaction
-      FROM bitirme_messages WHERE sender = $1 OR receiver = $1
+      SELECT DISTINCT CASE WHEN sender_username = $1 THEN receiver_username ELSE sender_username END as chat_partner, MAX(created_at) as last_interaction
+      FROM bitirme_messages WHERE sender_username = $1 OR receiver_username = $1
       GROUP BY chat_partner ORDER BY last_interaction DESC
     `, [user]);
     res.json(result.rows);
@@ -336,19 +317,20 @@ app.get('/chat/inbox/:user', async (req, res) => {
 app.get('/chat/history/:user1/:user2', async (req, res) => {
   const { user1, user2 } = req.params;
   try {
-    const result = await pool.query(`SELECT * FROM bitirme_messages WHERE (sender = $1 AND receiver = $2) OR (sender = $2 AND receiver = $1) ORDER BY created_at ASC`, [user1, user2]);
+    const result = await pool.query(`
+      SELECT * FROM bitirme_messages 
+      WHERE (sender_username = $1 AND receiver_username = $2) OR (sender_username = $2 AND receiver_username = $1) 
+      ORDER BY created_at ASC`, 
+      [user1, user2]
+    );
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: "Mesaj geçmişi çekilemedi" }); }
 });
 
-// YORUM EKLEME KAPISI
 app.post('/community/comment', async (req, res) => {
   const { post_id, username, comment_text } = req.body;
   try {
-    await pool.query(
-      "INSERT INTO bitirme_comments (post_id, username, comment_text) VALUES ($1, $2, $3)", 
-      [post_id, username, comment_text]
-    );
+    await pool.query("INSERT INTO bitirme_comments (post_id, username, comment_text) VALUES ($1, $2, $3)", [post_id, username, comment_text]);
     res.json({ success: true });
   } catch (err) { 
     console.error(err);
@@ -356,16 +338,90 @@ app.post('/community/comment', async (req, res) => {
   }
 });
 
-// YORUMLARI GETİRME KAPISI
 app.get('/community/comments/:postId', async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT * FROM bitirme_comments WHERE post_id = $1 ORDER BY created_at ASC", 
-      [req.params.postId]
-    );
+    const result = await pool.query("SELECT * FROM bitirme_comments WHERE post_id = $1 ORDER BY created_at ASC", [req.params.postId]);
     res.json(result.rows);
-  } catch (err) { 
-    res.status(500).json({ error: "Yorumlar çekilemedi" }); 
+  } catch (err) { res.status(500).json({ error: "Yorumlar çekilemedi" }); }
+});
+
+// --- ✨ YAPAY ZEKA GIDA VE MOTİVASYON SOHBETİ (AI CHAT) ✨ ---
+app.post("/chat", async (req, res) => {
+  try {
+    const { message, context, image } = req.body;
+    const fullPrompt = `Sen profesyonel bir diyetisyen, spor koçu ve SMLife asistanısın. 
+    Kullanıcının güncel verileri: ${context}. 
+    Kullanıcının mesajı: ${message}`;
+
+    const promptParts = [fullPrompt];
+
+    if (image) {
+      promptParts.push({
+        inlineData: {
+          data: image,
+          mimeType: "image/jpeg",
+        },
+      });
+    }
+
+    const result = await model.generateContent(promptParts);
+    res.json({ reply: result.response.text() });
+  } catch (error) {
+    console.error("AI Chat Hatası:", error);
+    res.status(500).json({ error: "Yapay zeka şu an yanıt veremiyor." });
+  }
+});
+
+// --- ✨ YAPAY ZEKA HAFTALIK RAPOR OLUŞTURUCU (KURŞUN GEÇİRMEZ) ✨ ---
+app.get('/generate-report/:user', async (req, res) => {
+  const { user } = req.params;
+  try {
+    const userRes = await pool.query("SELECT * FROM son_users WHERE name = $1", [user]);
+    const userData = userRes.rows.length > 0 ? userRes.rows[0] : { current_weight: 70, target_weight: 65 };
+
+    const exRes = await pool.query("SELECT SUM(duration_min) as total_min FROM bitirme_exercise_logs WHERE username = $1 AND created_at >= CURRENT_DATE - INTERVAL '7 days'", [user]);
+    const foodRes = await pool.query("SELECT SUM(calories) as total_cal FROM bitirme_food_logs WHERE username = $1 AND created_at >= CURRENT_DATE - INTERVAL '7 days'", [user]);
+    const waterRes = await pool.query("SELECT SUM(amount_ml) as total_ml FROM bitirme_water_logs WHERE username = $1 AND created_at >= CURRENT_DATE - INTERVAL '7 days'", [user]);
+
+    const weeklyEx = exRes.rows[0].total_min || 0;
+    const weeklyCal = foodRes.rows[0].total_cal || 0;
+    const weeklyWater = waterRes.rows[0].total_ml || 0;
+
+    const prompt = `Sen SMLife uygulamasının profesyonel, motive edici ve uzman AI Diyetisyen / Spor Koçusun.
+    Kullanıcının Adı: ${user}
+    Mevcut Kilosu: ${userData.current_weight} kg
+    Hedef Kilosu: ${userData.target_weight} kg
+    
+    Kullanıcının Son 7 Günlük Performansı:
+    - Toplam Egzersiz: ${weeklyEx} dakika
+    - Toplam Alınan Kalori: ${weeklyCal} kcal
+    - Toplam İçilen Su: ${weeklyWater} ml
+
+    LÜTFEN BANA SADECE AŞAĞIDAKİ FORMATTA GEÇERLİ BİR JSON OBJESİ DÖNDÜR. Ekstra metin, markdown veya açıklama KULLANMA.
+    {
+      "analiz": "Kullanıcının haftalık performansını samimi bir dille analiz et. (Maksimum 3-4 cümle)",
+      "diyet": "Hedef kilosuna ulaşması için pratik bir diyet önerisi yaz. (Maksimum 3-4 cümle)",
+      "egzersiz": "Mevcut spor dakikasına bakarak gerçekçi bir egzersiz planı çiz. (Maksimum 3-4 cümle)"
+    }`;
+
+    const result = await model.generateContent(prompt);
+    let textResponse = result.response.text();
+
+    const startIndex = textResponse.indexOf('{');
+    const endIndex = textResponse.lastIndexOf('}');
+    
+    if (startIndex === -1 || endIndex === -1) {
+      throw new Error("Yapay zeka geçerli bir format döndürmedi.");
+    }
+    
+    const cleanJsonString = textResponse.substring(startIndex, endIndex + 1);
+    const jsonResponse = JSON.parse(cleanJsonString);
+
+    res.json(jsonResponse);
+
+  } catch (error) {
+    console.error("Yapay Zeka Rapor Hatası:", error);
+    res.status(500).json({ error: "Rapor oluşturulamadı" });
   }
 });
 
