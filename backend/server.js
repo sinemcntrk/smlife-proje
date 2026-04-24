@@ -10,7 +10,7 @@ const jwt = require('jsonwebtoken');
 // --- 🤖 GEMINI AI KURULUMU ---
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 // Buraya kendi Google Gemini API anahtarını yazmalısın veya Railway Variables'tan çekmelisin
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "BURAYA_KENDI_API_ANAHTARINI_YAZ"); 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || AIzaSyB0CBWMOG3TeDB4Ifwxh9xFI5bL9E7Aawo); 
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 const app = express();
