@@ -100,7 +100,7 @@ def chat():
         return jsonify({"error": "Mesaj boş olamaz"}), 400
 
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         
         full_prompt = f"""
         Sen SMLife uygulamasının resmi yapay zeka diyetisyeni ve sağlık koçusun. 
