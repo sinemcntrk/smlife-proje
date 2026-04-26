@@ -10,22 +10,23 @@ app = Flask(__name__)
 # Tüm originlere izin veriyoruz
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# API Key Kontrolü
+# API Key Kontrolü (Node.js'de GEMINI_API_KEY kullanmıştık, burada GOOGLE_API_KEY. Railway Variables'ta ikisinin de olduğuna emin ol!)
 API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 if API_KEY:
     genai.configure(api_key=API_KEY)
     print("✅ SMLife AI Servisi Başarıyla Yapılandırıldı!")
 else:
-    print("⚠️ UYARI: GOOGLE_API_KEY bulunamadı!")
+    print("⚠️ UYARI: GOOGLE_API_KEY bulunamadı! Lütfen Railway Variables kısmına ekleyin.")
 
 # --- 📸 FOTOĞRAF ANALİZİ FONKSİYONU ---
 def analyze_image_with_gemini(image_bytes):
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        # SDK uyumluluğu için en stabil ve hızlı model
+        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = """
         Sen uzman bir diyetisyensin. Bu resimdeki yiyeceği analiz et.
-        Bana SADECE geçerli bir JSON formatında şu verileri ver:
+        Bana SADECE geçerli bir JSON formatında şu verileri ver. Ekstra hiçbir açıklama yapma:
         {
             "food_name": "Yemeğin Türkçe Adı",
             "calories": 100,
@@ -34,19 +35,26 @@ def analyze_image_with_gemini(image_bytes):
             "fat": 5,
             "confidence": 0.95
         }
-        Ekstra hiçbir açıklama yapma. Sadece JSON formatında çıktı ver.
         """
         img = Image.open(io.BytesIO(image_bytes))
         response = model.generate_content([prompt, img])
         
         text_response = response.text.strip()
-        if "```json" in text_response:
-            text_response = text_response.split("```json")[1].split("```")[0].strip()
-        elif "```" in text_response:
-            text_response = text_response.split("```")[1].split("```")[0].strip()
+        print(f"🤖 Gemini'dan Gelen Ham Yanıt: {text_response}") # Ne cevap verdiğini loglarda görelim
+        
+        # 🚀 KURŞUN GEÇİRMEZ JSON AYIKLAYICI
+        start_index = text_response.find('{')
+        end_index = text_response.rfind('}')
+        
+        if start_index == -1 or end_index == -1:
+            raise ValueError("Yapay zeka geçerli bir JSON formatı döndürmedi.")
 
-        return json.loads(text_response)
+        clean_json = text_response[start_index:end_index + 1]
+        return json.loads(clean_json)
+
     except Exception as e:
+        # Eğer çökerse asıl hatayı kırmızıyla Railway'e yazdırır
+        print(f"❌ FOTOĞRAF ANALİZ HATASI DETAYI: {str(e)}") 
         return {"error_details": str(e)}
 
 # --- 🚀 ANA SAYFA ---
@@ -78,6 +86,7 @@ def predict():
             'accuracy': result.get('confidence', 0.8)
         })
     except Exception as e:
+        print(f"❌ SUNUCU İÇ HATASI: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 # --- 🤖 AI CHATBOT (SOHBET) ENDPOINT'İ ---
@@ -85,15 +94,14 @@ def predict():
 def chat():
     data = request.json
     user_message = data.get("message", "")
-    user_context = data.get("context", "") # Boy, kilo, hedef bilgileri
+    user_context = data.get("context", "") 
 
     if not user_message:
         return jsonify({"error": "Mesaj boş olamaz"}), 400
 
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
-        # AI'ya bir kişilik ve bağlam veriyoruz
         full_prompt = f"""
         Sen SMLife uygulamasının resmi yapay zeka diyetisyeni ve sağlık koçusun. 
         Kullanıcı Bilgileri: {user_context}
@@ -109,6 +117,7 @@ def chat():
         return jsonify({"reply": response.text})
 
     except Exception as e:
+        print(f"❌ SOHBET HATASI DETAYI: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
