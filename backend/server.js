@@ -1,4 +1,6 @@
+require('dotenv').config();
 const express = require('express');
+
 const cors = require('cors');
 const pool = require('./db');
 const multer = require('multer');
@@ -7,16 +9,15 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// --- 🤖 GEMINI AI KURULUMU ---
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-// Buraya kendi Google Gemini API anahtarını yazmalısın veya Railway Variables'tan çekmelisin
-const genAI = new GoogleGenerativeAI("AIzaSyAsEYNc2Bqy7UilBehfLcEW7JMyMcFcWTg"); 
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
+// --- 🤖 GEMINI AI KURULUMU ---
+const { GoogleGenerativeAI } = require("@google/generative-ai"); 
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const app = express();
 
 const PORT = process.env.PORT || 5000; 
-const JWT_SECRET = process.env.JWT_SECRET || 'smlife_bitirme_projesi_gizli_anahtari_2026';
+
 
 const corsOptions = {
   origin: [
