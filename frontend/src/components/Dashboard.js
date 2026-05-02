@@ -162,10 +162,10 @@ const Dashboard = () => {
   const fetchUserDetails = async (user) => {
     try {
         // ✅ GÜNCELLENDİ: Backend Linki
-        const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/user-details/${user}`);
+        const res = await fetch(`https://20.215.235.193:5000/user-details/${user}`);
         const data = await res.json();
         if(data.current_weight) { setUserWeight(parseInt(data.current_weight)); }
-        if(data.profile_pic) { setProfilePic(`https://sm-life-akilli-yasam-1007.up.railway.app${data.profile_pic}`); }
+        if(data.profile_pic) { setProfilePic(`https://20.215.235.193:5000${data.profile_pic}`); }
         
         const calculatedGoal = calculateTDEE(data.current_weight, data.height, data.birthdate, data.gender, data.activity_level);
         setCalorieGoal(calculatedGoal);
@@ -175,7 +175,7 @@ const Dashboard = () => {
   const fetchWeeklyExercise = async (user) => {
     try {
         // ✅ GÜNCELLENDİ: Backend Linki
-        const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/weekly-exercise/${user}`);
+        const res = await fetch(`https://20.215.235.193:5000/weekly-exercise/${user}`);
         const data = await res.json();
         setWeeklyMinutes(data.total_min);
     } catch (err) { console.error(err); }
@@ -184,7 +184,7 @@ const Dashboard = () => {
   const fetchHistory = async (user) => { 
     try { 
       // ✅ GÜNCELLENDİ: Backend Linki
-      const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/history/${user}`); 
+      const res = await fetch(`https://20.215.235.193:5000/history/${user}`); 
       setHistory(await res.json()); 
     } catch (err) {} 
   };
@@ -192,7 +192,7 @@ const Dashboard = () => {
   const fetchExerciseHistory = async (user) => { 
     try { 
         // ✅ GÜNCELLENDİ: Backend Linki
-        const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/exercises/${user}`); 
+        const res = await fetch(`https://20.215.235.193:5000/exercises/${user}`); 
         const data = await res.json();
         setExerciseHistory(data); 
     } catch (err) { console.error(err); } 
@@ -201,7 +201,7 @@ const Dashboard = () => {
   const fetchWater = async (user) => { 
     try { 
       // ✅ GÜNCELLENDİ: Backend Linki
-      const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/water/${user}`); 
+      const res = await fetch(`https://20.215.235.193:5000/water/${user}`); 
       setWaterTotal((await res.json()).total); 
     } catch (err) {} 
   };
@@ -209,7 +209,7 @@ const Dashboard = () => {
   const fetchSleep = async (user) => { 
     try { 
       // ✅ GÜNCELLENDİ: Backend Linki
-      const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/sleep/${user}`); 
+      const res = await fetch(`https://20.215.235.193:5000/sleep/${user}`); 
       const data = await res.json(); 
       setSleepHours(data.duration); 
     } catch (err) {} 
@@ -218,7 +218,7 @@ const Dashboard = () => {
   const fetchGraphData = async (user) => { 
     try { 
       // ✅ GÜNCELLENDİ: Backend Linki
-      const res = await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/graph-data/${user}`); 
+      const res = await fetch(`https://20.215.235.193:5000/graph-data/${user}`); 
       setGraphData(await res.json()); 
     } catch (err) {} 
   };
@@ -231,10 +231,10 @@ const Dashboard = () => {
     formData.append('username', userName);
     try {
         // ✅ GÜNCELLENDİ: Backend Linki
-        const res = await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/upload-pp', { method: 'POST', body: formData });
+        const res = await fetch('https://20.215.235.193:5000/upload-pp', { method: 'POST', body: formData });
         const data = await res.json();
         if (data.success) {
-            setProfilePic(`https://sm-life-akilli-yasam-1007.up.railway.app${data.filePath}?v=${Date.now()}`);
+            setProfilePic(`https://20.215.235.193:5000${data.filePath}?v=${Date.now()}`);
             alert("Profil fotoğrafı güncellendi!");
         } else { alert("Hata oluştu."); }
     } catch (error) { console.error("Upload hatası:", error); }
@@ -245,14 +245,14 @@ const Dashboard = () => {
     const nextVal = currentVal + amount;
     if (amount < 0 && nextVal < 0) { return alert("Su miktarı 0'dan az olamaz!"); }
     // ✅ GÜNCELLENDİ: Backend Linki ve typo (https:/ -> https://) düzeltildi
-    await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/add-water', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username: userName, amount }) });
+    await fetch('https://20.215.235.193:5000/add-water', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username: userName, amount }) });
     fetchWater(userName); fetchGraphData(userName);
   };
 
   const saveSleep = async () => {
     if (!calculatedSleep) return alert("Geçerli saat girin!");
     // ✅ GÜNCELLENDİ: Backend Linki
-    await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/set-sleep', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username: userName, duration: calculatedSleep }) });
+    await fetch('https://20.215.235.193:5000/set-sleep', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username: userName, duration: calculatedSleep }) });
     fetchSleep(userName); fetchGraphData(userName); alert(`Uyku kaydedildi: ${calculatedSleep} saat`);
     setBedTime(""); setWakeTime(""); setCalculatedSleep(null);
   };
@@ -291,7 +291,7 @@ const Dashboard = () => {
 
       try {
         // ✅ GÜNCELLENDİ: Backend Linki
-        await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/add-exercise', { 
+        await fetch('https://20.215.235.193:5000/add-exercise', { 
             method: 'POST', 
             headers: {'Content-Type': 'application/json'}, 
             body: JSON.stringify({ 
@@ -312,7 +312,7 @@ const Dashboard = () => {
   const handleManualAdd = async (foodItem) => {
     try {
         // ✅ GÜNCELLENDİ: Backend Linki
-        await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/save-analysis', { 
+        await fetch('https://20.215.235.193:5000/save-analysis', { 
             method: 'POST', headers: {'Content-Type': 'application/json'}, 
             body: JSON.stringify({ 
                 username: userName, 
@@ -333,7 +333,7 @@ const Dashboard = () => {
       if(!window.confirm("Bu yemeği silmek istediğine emin misin?")) return;
       try {
           // ✅ GÜNCELLENDİ: Backend Linki
-          await fetch(`https://sm-life-akilli-yasam-1007.up.railway.app/delete-food/${id}`, { method: 'DELETE' });
+          await fetch(`https://20.215.235.193:5000/delete-food/${id}`, { method: 'DELETE' });
           fetchHistory(userName);
           fetchGraphData(userName);
       } catch (e) { alert("Silme hatası"); }
@@ -347,14 +347,14 @@ const Dashboard = () => {
     const formData = new FormData(); formData.append('file', selectedFile);
     try {
         // 🔥 GÜNCELLENDİ: AI LİNKİ BURADA! Sadece analiz isteği buraya gider.
-        const aiRes = await fetch('https://smlife-proje-production.up.railway.app/predict', { method: 'POST', body: formData });
+        const aiRes = await fetch('https://20.215.235.193:5000/predict', { method: 'POST', body: formData });
         const aiData = await aiRes.json();
         
         if (aiData.success || aiData.food) { // Python çıktısına göre 'food' veya 'success' olabilir.
             setAiResult(aiData);
             
             // ✅ GÜNCELLENDİ: Analiz sonucu alınan veriyi Backend'e kaydetme linki
-            await fetch('https://sm-life-akilli-yasam-1007.up.railway.app/save-analysis', { 
+            await fetch('https://20.215.235.193:5000/save-analysis', { 
                 method: 'POST', 
                 headers: {'Content-Type': 'application/json'}, 
                 body: JSON.stringify({ 

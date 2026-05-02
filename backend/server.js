@@ -9,21 +9,24 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-
-// --- 🤖 GEMINI AI KURULUMU ---
+// --- 🤖 GEMINI AI KURULUMU (Sıralama Düzeltildi) ---
 const { GoogleGenerativeAI } = require("@google/generative-ai"); 
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Doğru çalışan modelimiz:
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
+
+const JWT_SECRET = process.env.JWT_SECRET || 'smlife_bitirme_projesi_gizli_anahtari_2026';
 const app = express();
 
 const PORT = process.env.PORT || 5000; 
 
-
+// --- CORS AYARLARI (Azure IP Eklendi) ---
 const corsOptions = {
   origin: [
-    'https://smlife-production-1007.up.railway.app', 
+    'https://20.215.235.193:5000',
     'http://localhost:3000', 
-    'http://localhost:8081'  
+    'http://localhost:8081',
+    'http://20.215.235.193' // Canlı testlerimiz için Azure IP'miz
   ],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true, 
@@ -123,7 +126,7 @@ const createTables = async () => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );`);
 
-    console.log("Tablolar Hazır/Kontrol Edildi (Railway Uyumlu 🛡️)");
+    console.log("Tablolar Hazır/Kontrol Edildi (Azure Uyumlu 🛡️)");
   } catch (err) {
     console.error("Tablo hatası:", err.message);
   }
